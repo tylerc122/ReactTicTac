@@ -12,7 +12,6 @@ function calculateWinner(squares) {
         [2, 4, 6]
     ];
 
-
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
@@ -53,7 +52,6 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     }
     return (
         <>
-            {/* Added this new container */}
             <div className="board-container">
                 <div className={`board ${winner || isDraw ? (showOverlay ? 'blur' : '') : ''}`}>
                     <div className="status">{status}</div>

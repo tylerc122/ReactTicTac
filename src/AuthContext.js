@@ -6,7 +6,10 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
     const login = (userData) => {
-        setUser(userData);
+        setUser({
+            token: userData.token,
+            username: userData.username,
+        });
 
         localStorage.setItem('token', userData.token);
     };

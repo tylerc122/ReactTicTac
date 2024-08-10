@@ -3,6 +3,7 @@ import { login } from './api';
 import { useAuth } from './AuthContext';
 
 function Login() {
+    // useState hooks to manage username, password states.
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { login: authLogin } = useAuth();
@@ -10,10 +11,11 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Call login from the API
             const data = await login(username, password);
+            // Called authLogin from auth
             authLogin(data);
             console.log('Login successful', data);
-            // Here you would typically save the token and update your app's state
         } catch (error) {
             console.error('Login failed', error);
         }

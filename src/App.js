@@ -3,6 +3,7 @@ import Login from './Login';
 import Game from './Game';
 import Navbar from './Navbar';
 import { useAuth } from './AuthContext';
+import './styles.css';
 
 function App() {
   const { user } = useAuth();

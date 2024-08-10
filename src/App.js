@@ -10,6 +10,7 @@ function App() {
   return (
     <div className="App">
       <Navbar />
+      <div style={{ marginTop: '20px' }}></div>
       {user ? <Game /> : <Login />}
     </div>
   );

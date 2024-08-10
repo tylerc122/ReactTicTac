@@ -1,23 +1,30 @@
 import React, { useState } from 'react';
-import { login } from './api';
+import { login, register } from './api';
 import { useAuth } from './AuthContext';
 
 function Login() {
     // useState hooks to manage username, password states.
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
     const { login: authLogin } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Call login from the API
-            const data = await login(username, password);
-            // Called authLogin from auth
-            authLogin(data);
-            console.log('Login successful', data);
+            if (isRegistering) {
+                await register(username, password);
+                console.log('Registration success!');
+                setIsRegistering(false);
+            } else {
+                // Call login from the API
+                const data = await login(username, password);
+                // Called authLogin from auth
+                authLogin(data);
+                console.log('Login successful', data);
+            }
         } catch (error) {
-            console.error('Login failed', error);
+            console.error(isRegistering ? 'Registration failed' : 'Login failed', error);
         }
     };
 
@@ -35,7 +42,10 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
             />
-            <button type="submit">Login</button>
+            <button type="submit">{isRegistering ? 'Register' : 'Login'}</button>
+            <button type="button" onClick={() => setIsRegistering(!isRegistering)}>
+                {isRegistering ? 'Switch to Login' : 'Switch to Register'}
+            </button>
         </form>
     );
 }

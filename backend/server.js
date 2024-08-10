@@ -2,11 +2,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
+const cors = require('cors');
 
 dotenv.config();
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
 
 const app = express();
+
+const corsOption = {
+    origin: 'http://localhost:3000',
+    optionSucessStatus: 200
+};
+
+app.use(cors(corsOption));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI)

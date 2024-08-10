@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import confetti from 'canvas-confetti';
 
 function calculateWinner(squares) {
     const lines = [
@@ -24,7 +25,7 @@ function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
 
-function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen }) {
+function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen, confettiLaunched, setConfettiLaunched }) {
     function handleClick(i) {
         if (squares[i] || calculateWinner(squares)) {
             return;
@@ -45,6 +46,10 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     let status;
     if (winner) {
         status = "Winner: " + winner + "!";
+        if (!confettiLaunched) {
+            launchConfetti(); // CONFETTI!!!!!
+            setConfettiLaunched(true);
+        }
     } else if (isDraw) {
         status = "It's a draw!";
     } else {
@@ -88,6 +93,19 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
         </>
     );
 }
+function launchConfetti() {
+    confetti({
+        particleCount: 1000,
+        startVelocity: 90,
+        spread: 360,
+        origin: {
+            x: 0.5,
+            y: 1
+        },
+        ticks: 90,
+    });
+}
+
 export default function Game() {
     const [history, setHistory] = useState([Array(9).fill(null)]);
     const [currentMove, setCurrentMove] = useState(0);
@@ -95,6 +113,7 @@ export default function Game() {
     const [oScore, setOScore] = useState(0);
     const [draws, setDraws] = useState(0);
     const [showOverlay, setShowOverlay] = useState(true);
+    const [confettiLaunched, setConfettiLaunched] = useState(false);
     const xIsNext = currentMove % 2 === 0;
     const currentSquares = history[currentMove];
 
@@ -126,6 +145,7 @@ export default function Game() {
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
         setShowOverlay(true);
+        setConfettiLaunched(false);
     }
     function toggleOverlay() {
         setShowOverlay(!showOverlay);
@@ -159,7 +179,16 @@ export default function Game() {
             </div>
             <div className="game">
                 <div className="game-board">
-                    <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} onReset={resetGame} showOverlay={showOverlay} toggleOverlay={toggleOverlay} returnToWinScreen={returnToWinScreen} />
+                    <Board
+                        xIsNext={xIsNext}
+                        squares={currentSquares}
+                        onPlay={handlePlay}
+                        onReset={resetGame}
+                        showOverlay={showOverlay}
+                        toggleOverlay={toggleOverlay}
+                        returnToWinScreen={returnToWinScreen}
+                        confettiLaunched={confettiLaunched}
+                        setConfettiLaunched={setConfettiLaunched} />
                 </div>
                 <div className={`game-info ${gameOver && showOverlay ? 'blur' : ''}`}>
                     <ol>{moves}</ol>

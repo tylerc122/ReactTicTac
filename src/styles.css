@@ -46,18 +46,12 @@ ul {
   padding-inline-start: 20px;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  font-family: sans-serif;
-  margin: 20px;
-  padding: 0;
-}
-
 .board-container {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .board {
@@ -75,7 +69,7 @@ body {
   float: left;
   font-size: 100px;
   font-weight: bold;
-  line-height: 34px;
+  line-height: 200px;
   height: 200px;
   margin-right: -1px;
   margin-top: -1px;
@@ -96,7 +90,8 @@ body {
 
 .game {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
 }
 
 .winner-overlay {
@@ -104,35 +99,43 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 2px solid #999;
-  padding: 20px;
-  font-size: 100px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 3px solid #999;
+  padding: 30px 40px;
+  border-radius: 10px;
+  font-size: 36px;
   font-weight: bold;
   text-align: center;
   z-index: 10;
   color: red;
   box-sizing: border-box;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .game-info {
-  margin-left: 20px;
+  margin-top: 20px;
 }
 
+.return-win-screen-button,
 .replay-button,
-.toggle-blur-button,
-.return-win-screen-button {
+.toggle-blur-button {
   margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 12px 24px;
+  font-size: 18px;
   background-color: #4CAF50;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.replay-button,
+.toggle-blur-button {
+  margin-top: 15px;
 }
 
 .replay-button:hover,
@@ -150,13 +153,7 @@ body {
 }
 
 .scoreboard {
-  margin-top: -490px;
-  margin-right: 10px;
-  margin-left: -10px;
+  margin-top: 20px;
   font-size: 20px;
-  text-align: right;
-}
-
-.scoreboard div {
-  margin: 7px 0;
+  text-align: center;
 }

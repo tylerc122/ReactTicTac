@@ -69,7 +69,7 @@ body {
   filter: blur(5px);
 }
 
-.square {
+.game-container .square {
   background: #fff;
   border: 1px solid #611d1d;
   float: left;
@@ -84,28 +84,19 @@ body {
   width: 200px;
 }
 
-.board-row:after {
+.game-container .board-row:after {
   clear: both;
   content: '';
   display: table;
 }
 
-.status {
+.game-container.status {
   margin-bottom: 10px;
 }
 
 .game {
   display: flex;
   flex-direction: row;
-}
-
-.game-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  position: relative;
-  padding-top: 50px;
 }
 
 .winner-overlay {

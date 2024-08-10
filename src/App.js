@@ -10,7 +10,7 @@ function App() {
   return (
     <div className="App">
       <Navbar />
-      <div style={{ marginTop: '20px' }}></div>
+      <div style={{ marginTop: '10px' }}></div>
       {user ? <Game /> : <Login />}
     </div>
   );

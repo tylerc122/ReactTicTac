@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ username });
         // If not, tell them they need to register.
         if (!user) {
-            return res.status(400).json({ error: 'Invalid credentials: Please register.' });
+            return res.status(400).json({ error: 'Invalid credentials: Please register' });
         }
         // Same thing w/ password.
         const validPassword = await bcrypt.compare(password, user.password);

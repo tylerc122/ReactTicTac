@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5001/api/auth';
 
 export const register = async (username, password) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/register`, { username, password });
+        const response = await axios.post(`${API_URL}/register`, { username, password });
         return response.data;
     } catch (error) {
         throw error.response.data;
@@ -13,9 +13,10 @@ export const register = async (username, password) => {
 
 export const login = async (username, password) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/login`, { username, password });
+        const response = await axios.post(`${API_URL}/login`, { username, password });
         return response.data;
     } catch (error) {
-        throw error.response.data;
+        console.error('Error logging in:', error);
+        throw error
     }
 };

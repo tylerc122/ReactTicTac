@@ -1,0 +1,171 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  margin: 20px;
+  padding: 0;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 22px;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+h4 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+h5 {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+h6 {
+  margin-top: 0;
+  font-size: 12px;
+}
+
+code {
+  font-size: 1.2em;
+}
+
+ul {
+  padding-inline-start: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  padding: 0;
+}
+
+.board-container {
+  position: relative;
+}
+
+.board {
+  filter: none;
+  transition: filter 0.3s;
+}
+
+.board-blur {
+  filter: blur(5px);
+}
+
+.square {
+  background: #fff;
+  border: 1px solid #611d1d;
+  float: left;
+  font-size: 100px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 200px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
+  text-align: center;
+  width: 200px;
+}
+
+.board-row:after {
+  clear: both;
+  content: '';
+  display: table;
+}
+
+.status {
+  margin-bottom: 10px;
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  position: relative;
+  padding-top: 50px;
+}
+
+.winner-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 2px solid #999;
+  padding: 20px;
+  font-size: 100px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 10;
+  color: red;
+  box-sizing: border-box;
+}
+
+.game-info {
+  margin-left: 20px;
+}
+
+.replay-button,
+.toggle-blur-button,
+.return-win-screen-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.replay-button:hover,
+.toggle-blur-button:hover,
+.return-win-screen-button:hover {
+  background-color: #45a049;
+}
+
+.blur {
+  filter: blur(5px);
+}
+
+.no-pointer-events {
+  pointer-events: none;
+}
+
+.scoreboard {
+  margin-top: -490px;
+  margin-right: 10px;
+  margin-left: -10px;
+  font-size: 20px;
+  text-align: right;
+}
+
+.scoreboard div {
+  margin: 7px 0;
+}

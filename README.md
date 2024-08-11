@@ -1,3 +1,5 @@
+![alt text](file:///Users/tylercollo/Downloads/ReactTicTac%E2%9D%8C%E2%AD%95.png);
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

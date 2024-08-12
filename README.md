@@ -9,9 +9,14 @@
 ## Features
 - Fun tic-tac-toe gameplay
 - Unique accounts
+- Leaderboard (***COMING SOON!!***)
+- Account statistics (***COMING SOON!!***)
+- Online play (***COMING SOON!!***)
+- Offline mode / Play against a bot (***COMING SOON!!***)
 
 ## Technologies Used
 - React
+- NodeJS
 - MongoDB
 - RESTful API's
 - bcrypt
@@ -22,7 +27,7 @@
    ```bash
    git clone https://github.com/tylerc122/ReactTicTac.git
    cd ReactTicTac
-2. **Install dependencies & run :**
+2. **Install dependencies:**
     ```bash
     npm install
 3. **Run the application:**

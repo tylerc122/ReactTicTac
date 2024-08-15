@@ -20,7 +20,7 @@ function App() {
       <button onClick={toggleOfflineMode}>
         {isOfflineMode ? 'Switch to Online Mode' : 'Switch to Offline Mode'}
       </button>
-      {user ? <Game /> : <Login />}
+      {user || isOfflineMode ? <Game isOfflineMode={isOfflineMode} /> : <Login />}
     </div>
   );
 }

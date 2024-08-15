@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import { getGameState, updateGameState } from './api';
 
 function calculateWinner(squares) {
     const lines = [
@@ -106,7 +107,7 @@ function launchConfetti() {
     });
 }
 
-export default function Game() {
+export default function Game({ isOfflineMode }) {
     const [history, setHistory] = useState([Array(9).fill(null)]);
     const [currentMove, setCurrentMove] = useState(0);
     const [xScore, setXScore] = useState(0);
@@ -117,22 +118,46 @@ export default function Game() {
     const xIsNext = currentMove % 2 === 0;
     const currentSquares = history[currentMove];
 
+    useEffect(() => {
+        if (!isOfflineMode) {
+            // Need the initial game state from the server when we're in online mode
+            async function fetchGameState() {
+                try {
+                    const gameState = await getGameState();
+                    setHistory([gameState]);
+                    setCurrentMove(gameState.filter(square => square !== null).length);
+                } catch (error) {
+                    console.error('Failed to fetch current game state', error);
+                }
+            }
+            fetchGameState();
+        }
+    }, [isOfflineMode]);
+
     const winner = calculateWinner(currentSquares);
-    const isDraw = !winner && currentMove === 9;
+    const isDraw = !winner && currentSquares.every(square => square !== null);
 
     const gameOver = winner || isDraw;
 
-    function handlePlay(nextSquares) {
+    async function handlePlay(nextSquares) {
         const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
+
+        if (!isOfflineMode) {
+            try {
+                await updateGameState(nextSquares);
+            } catch (error) {
+                console.error('Failed to update current game state:', error);
+            }
+        }
     }
 
     function jumpTo(nextMove) {
         setCurrentMove(nextMove);
     }
 
-    function resetGame() {
+    async function resetGame() {
         if (winner) {
             if (winner === 'X') {
                 setXScore(xScore + 1);
@@ -146,6 +171,14 @@ export default function Game() {
         setCurrentMove(0);
         setShowOverlay(true);
         setConfettiLaunched(false);
+
+        if (!isOfflineMode) {
+            try {
+                await updateGameState(Array(9).fill(null));
+            } catch (error) {
+                console.error('Failed to reset the current game state', error);
+            }
+        }
     }
     function toggleOverlay() {
         setShowOverlay(!showOverlay);

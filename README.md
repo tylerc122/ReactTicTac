@@ -9,10 +9,12 @@
 ## Features
 - Fun tic-tac-toe gameplay
 - Unique accounts
+- Offline mode
+- Play against a bot (***COMING SOON!!***)
 - Leaderboard (***COMING SOON!!***)
 - Account statistics (***COMING SOON!!***)
 - Online play (***COMING SOON!!***)
-- Offline mode / Play against a bot (***COMING SOON!!***)
+
 
 ## Technologies Used
 - React

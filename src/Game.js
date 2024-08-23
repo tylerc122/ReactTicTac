@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { getGameState, updateGameState } from './api';
+import { getGameState, updateGameState, updateStats } from './api';
+import { useAuth } from './AuthContext';
+
 
 function calculateWinner(squares) {
     const lines = [
@@ -115,6 +117,7 @@ export default function Game({ isOfflineMode }) {
     const [draws, setDraws] = useState(0);
     const [showOverlay, setShowOverlay] = useState(true);
     const [confettiLaunched, setConfettiLaunched] = useState(false);
+    const { user } = useAuth();
     const xIsNext = currentMove % 2 === 0;
     const currentSquares = history[currentMove];
 
@@ -151,22 +154,44 @@ export default function Game({ isOfflineMode }) {
                 console.error('Failed to update current game state:', error);
             }
         }
+
+        const newWinner = calculateWinner(nextSquares);
+        const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
+
+        if (newWinner || newIsDraw) {
+            handleGameEnd(newWinner || 'draw');
+        }
     }
+
+
 
     function jumpTo(nextMove) {
         setCurrentMove(nextMove);
     }
-
-    async function resetGame() {
-        if (winner) {
-            if (winner === 'X') {
-                setXScore(xScore + 1);
-            } else {
-                setOScore(oScore + 1);
-            }
-        } else if (isDraw) {
+    async function handleGameEnd(result) {
+        if (result === 'X') {
+            setXScore(xScore + 1);
+        } else if (result === 'O') {
+            setOScore(oScore + 1);
+        } else {
             setDraws(draws + 1);
         }
+
+        if (!isOfflineMode && user) {
+            try {
+                let statResult;
+                if (result === 'X' && xIsNext) statResult = 'win';
+                else if (result === 'O' && !xIsNext) statResult = 'win';
+                else if (result === 'draw') statResult = 'draw';
+                else statResult = 'loss';
+
+                await updateStats(user._id, statResult);
+            } catch (error) {
+                console.error('Failed to update overall stats:', error);
+            }
+        }
+    }
+    async function resetGame() {
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
         setShowOverlay(true);

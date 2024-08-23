@@ -4,6 +4,7 @@ import Game from './Game';
 import Navbar from './Navbar';
 import { useAuth } from './AuthContext';
 import './styles.css';
+import Statistics from './Statistics';
 
 function App() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ function App() {
       <button onClick={toggleOfflineMode}>
         {isOfflineMode ? 'Switch to Online Mode' : 'Switch to Offline Mode'}
       </button>
+      {user && <Statistics />}
       {user || isOfflineMode ? <Game isOfflineMode={isOfflineMode} /> : <Login />}
     </div>
   );

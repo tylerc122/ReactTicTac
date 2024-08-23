@@ -22,29 +22,43 @@ export const login = async (username, password) => {
 };
 
 export async function getGameState() {
-    const response = await fetch('${API_URL}/game-state', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-    });
-    if (!response.ok) {
-        throw new Error('Failed to fetch current game state');
+    try {
+        const response = await axios.get(`${API_URL}/game-state`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch current game state:', error);
+        throw error;
     }
-    return response.json();
 }
 
 export async function updateGameState(newState) {
-    const response = await fetch('${API_URL}/game-state', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getIteam('token')}`,
-        },
-        body: JSON.stringify({ state, newState }),
-    });
-    if (!response.ok) {
-        throw new Error('Failed to update current game state');
+    try {
+        const response = await axios.post(`${API_URL}/game-state`,
+            { newState },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Failed to update current game state:', error);
+        throw error;
     }
-    return response.json();
+}
+
+export const updateStats = async (userId, result) => {
+    try {
+        const response = await axios.post(`${API_URL}/updateStats`, { userId, result });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating account statistics:', error);
+        throw error;
+    }
 }

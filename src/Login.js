@@ -19,11 +19,7 @@ function Login() {
             } else {
                 // Call login from the API
                 const data = await login(username, password);
-                // Called authLogin from auth
-                authLogin({
-                    token: data.token,
-                    username: username,
-                });
+                authLogin(data);
                 console.log('Login successful', data);
             }
         } catch (error) {

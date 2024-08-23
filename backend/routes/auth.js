@@ -58,4 +58,34 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/updateStats', async (req, res) => {
+    try {
+        const { userId, result } = req.body;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User was not found' });
+        }
+
+        switch (result) {
+            case 'win':
+                user.stats.wins += 1;
+                break;
+            case 'loss':
+                user.stats.losses += 1;
+                break;
+            case 'draw':
+                user.stats.draws += 1;
+                break;
+            default:
+                return res.status(400).json({ error: 'Not a valid result' });
+        }
+        await user.save();
+        res.json({ message: 'Account statistics updated successfully', stats: user.stats });
+    } catch (error) {
+        console.error('Error updating account statistics', error);
+        res.status(500).json({ error: 'Error updating account statistics' });
+    }
+});
+
 module.exports = router;

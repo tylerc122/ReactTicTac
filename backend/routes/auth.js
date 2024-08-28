@@ -88,4 +88,7 @@ router.post('/updateStats', async (req, res) => {
     }
 });
 
+router.post('/game-state', async (req, res) => {
+
+})
 module.exports = router;

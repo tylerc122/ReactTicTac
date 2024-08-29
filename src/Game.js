@@ -59,7 +59,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
         }
     }, [winner, confettiLaunched]);
     if (winner) {
-        status = "Winner: " + winner + "1";
+        status = "Winner: " + winner + "!";
     } else if (isDraw) {
         status = "It's a draw!";
     } else {
@@ -124,7 +124,7 @@ export default function Game({ isOfflineMode }) {
     const [draws, setDraws] = useState(0);
     const [showOverlay, setShowOverlay] = useState(true);
     const [confettiLaunched, setConfettiLaunched] = useState(false);
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const xIsNext = currentMove % 2 === 0;
     const currentSquares = history[currentMove] || Array(9).fill(null);
 
@@ -134,7 +134,7 @@ export default function Game({ isOfflineMode }) {
             async function fetchGameState() {
                 try {
                     const gameState = await getGameState();
-                    if (Array.isArray(gameState) && gameState.length == 9) {
+                    if (Array.isArray(gameState) && gameState.length === 9) {
                         setHistory([gameState]);
                         setCurrentMove(gameState.filter(square => square !== null).length);
                     } else {
@@ -196,11 +196,16 @@ export default function Game({ isOfflineMode }) {
             try {
                 let statResult;
                 if (result === 'X' && xIsNext) statResult = 'win';
-                else if (result === 'O' && !xIsNext) statResult = 'win';
+                else if (result === 'O' && !xIsNext) statResult = 'loss';
                 else if (result === 'draw') statResult = 'draw';
-                else statResult = 'loss';
 
-                await updateStats(user._id, statResult);
+                const updatedStats = await updateStats(user._id, statResult);
+
+                setXScore(updatedStats.wins);
+                setOScore(updatedStats.losses);
+                setDraws(updatedStats.draws);
+
+                updateUser({ ...user, stats: updatedStats });
             } catch (error) {
                 console.error('Failed to update overall stats:', error);
             }

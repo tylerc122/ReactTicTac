@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const API_URL = 'http://localhost:5001/api/auth';
 const GAME_URL = 'http://localhost:5001/api/game';
 
@@ -56,12 +57,12 @@ export async function updateGameState(newState) {
 
 export const updateStats = async (userId, result) => {
     try {
-        const response = await axios.post(`${GAME_URL}/updateStats`, { userId, result }, {
+        const response = await axios.post(`${GAME_URL}/update-stats`, { userId, result }, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
             },
         });
-        return response.data;
+        return response.data.stats;
     } catch (error) {
         console.error('Error updating account statistics:', error);
         throw error;

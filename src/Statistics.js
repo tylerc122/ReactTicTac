@@ -8,6 +8,7 @@ const Statistics = () => {
         return <div>No statistics available</div>
     }
 
+    const { wins, losses, draws } = user.stats;
     const totalGames = user.stats.wins + user.stats.losses + user.stats.draws;
     const winPercentage = totalGames > 0 ? ((user.stats.wins / totalGames) * 100).toFixed(2) : 0;
 

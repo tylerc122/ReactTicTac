@@ -155,6 +155,12 @@ export default function Game({ isOfflineMode }) {
     const winner = calculateWinner(currentSquares);
     const isDraw = !winner && currentSquares.every(square => square !== null);
 
+    useEffect(() => {
+        if (winner) {
+            launchConfetti();
+        }
+    }, [winner]);
+
     const gameOver = winner || isDraw;
 
     async function handlePlay(nextSquares) {

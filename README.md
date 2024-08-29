@@ -10,9 +10,9 @@
 - Fun tic-tac-toe gameplay
 - Unique accounts
 - Offline mode
+- Account statistics
 - Play against a bot (***COMING SOON!!***)
 - Leaderboard (***COMING SOON!!***)
-- Account statistics (***COMING SOON!!***)
 - Online play (***COMING SOON!!***)
 
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 const User = require('../models/User');
 
 const router = express.Router();
@@ -85,6 +86,19 @@ router.post('/updateStats', async (req, res) => {
     } catch (error) {
         console.error('Error updating account statistics', error);
         res.status(500).json({ error: 'Error updating account statistics' });
+    }
+});
+
+router.get('/user-stats', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User unable to be found' });
+        }
+        res.json({ stats: user.stats });
+    } catch (error) {
+        console.error('Error getting stats'.error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

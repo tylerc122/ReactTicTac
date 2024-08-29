@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
             console.log('Invalid password for user:', username);
             return res.status(400).json({ error: 'Invalid credentials: Incorrect password' });
         }
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET);
         console.log('Login successful for user:', username);
         res.json({ token });
     } catch (error) {

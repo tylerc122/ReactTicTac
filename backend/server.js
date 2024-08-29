@@ -3,25 +3,35 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const cors = require('cors');
+const gameRoutes = require('./routes/gameRoutes');
+
 
 dotenv.config();
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
+
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    optionsSuccessStatus: 200
+};
 
 const app = express();
 
-const corsOption = {
-    origin: 'http://localhost:3000',
-    optionSucessStatus: 200
-};
+app.use(cors(corsOptions));
 
-app.use(cors(corsOption));
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+app.use('/api/game', gameRoutes);
+
+
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
-app.use('/api/auth', authRoutes);
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Broken broken broken fix it');
+});
 
 // Server running on port 5001.
 const PORT = process.env.PORT || 5001;

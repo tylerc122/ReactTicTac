@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api/auth';
+const GAME_URL = 'http://localhost:5001/api/game';
 
 export const register = async (username, password) => {
     try {
@@ -23,7 +24,7 @@ export const login = async (username, password) => {
 
 export async function getGameState() {
     try {
-        const response = await axios.get(`${API_URL}/game-state`, {
+        const response = await axios.get(`${GAME_URL}/state`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
             },
@@ -37,7 +38,7 @@ export async function getGameState() {
 
 export async function updateGameState(newState) {
     try {
-        const response = await axios.post(`${API_URL}/game-state`,
+        const response = await axios.post(`${GAME_URL}/state`,
             { newState },
             {
                 headers: {
@@ -55,10 +56,14 @@ export async function updateGameState(newState) {
 
 export const updateStats = async (userId, result) => {
     try {
-        const response = await axios.post(`${API_URL}/updateStats`, { userId, result });
+        const response = await axios.post(`${GAME_URL}/updateStats`, { userId, result }, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+        });
         return response.data;
     } catch (error) {
         console.error('Error updating account statistics:', error);
         throw error;
     }
-}
+};

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 const User = require('../models/User');
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.post('/register', async (req, res) => {
 
         // Hash the users password with bcrypt.
         const hashedPassword = await bcrypt.hash(password, 10);
+
         // Creating new user instance with the password we just hashed.
         const user = new User({ username, password: hashedPassword });
         await user.save();
@@ -49,7 +51,7 @@ router.post('/login', async (req, res) => {
             console.log('Invalid password for user:', username);
             return res.status(400).json({ error: 'Invalid credentials: Incorrect password' });
         }
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET);
         console.log('Login successful for user:', username);
         res.json({ token });
     } catch (error) {
@@ -88,7 +90,23 @@ router.post('/updateStats', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 router.post('/game-state', async (req, res) => {
 
 })
+=======
+router.get('/user-stats', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User unable to be found' });
+        }
+        res.json({ stats: user.stats });
+    } catch (error) {
+        console.error('Error getting stats'.error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+>>>>>>> temp-branch
 module.exports = router;

@@ -90,11 +90,6 @@ router.post('/updateStats', async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
-router.post('/game-state', async (req, res) => {
-
-})
-=======
 router.get('/user-stats', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
@@ -108,5 +103,4 @@ router.get('/user-stats', auth, async (req, res) => {
     }
 });
 
->>>>>>> temp-branch
 module.exports = router;

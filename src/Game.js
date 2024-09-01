@@ -27,6 +27,7 @@ function calculateWinner(squares) {
     }
     return null;
 }
+
 function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
@@ -65,6 +66,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     } else {
         status = "Next player: " + (xIsNext ? "X" : "O");
     }
+
     return (
         <>
             <div className="board-container">
@@ -103,6 +105,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
         </>
     );
 }
+
 function launchConfetti() {
     confetti({
         particleCount: 1000,
@@ -217,6 +220,7 @@ export default function Game({ isOfflineMode }) {
             }
         }
     }
+
     async function resetGame() {
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
@@ -231,6 +235,7 @@ export default function Game({ isOfflineMode }) {
             }
         }
     }
+
     function toggleOverlay() {
         setShowOverlay(!showOverlay);
     }
@@ -246,7 +251,6 @@ export default function Game({ isOfflineMode }) {
         } else {
             description = 'Go to game start';
         }
-
         return (
             <li key={move}>
                 <button onClick={() => jumpTo(move)}>{description}</button>

@@ -10,9 +10,9 @@
 - Fun tic-tac-toe gameplay
 - Unique accounts
 - Offline mode
+- Account statistics
 - Play against a bot (***COMING SOON!!***)
 - Leaderboard (***COMING SOON!!***)
-- Account statistics (***COMING SOON!!***)
 - Online play (***COMING SOON!!***)
 
 
@@ -25,13 +25,4 @@
 
 ## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/tylerc122/ReactTicTac.git
-   cd ReactTicTac
-2. **Install dependencies:**
-    ```bash
-    npm install
-3. **Run the application:**
-    ```bash
-    npm start
+***WIP***

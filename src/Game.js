@@ -3,8 +3,11 @@ import confetti from 'canvas-confetti';
 import { getGameState, updateGameState, updateStats } from './api';
 import { useAuth } from './AuthContext';
 
-
 function calculateWinner(squares) {
+    if (!Array.isArray(squares)) {
+        console.error('Invalid', squares);
+        return null;
+    }
     const lines = [
         [0, 1, 2],
         [3, 4, 5],
@@ -24,11 +27,14 @@ function calculateWinner(squares) {
     }
     return null;
 }
+
 function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
 
-function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen, confettiLaunched, setConfettiLaunched }) {
+function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen }) {
+    const [confettiLaunched, setConfettiLaunched] = React.useState(false);
+
     function handleClick(i) {
         if (squares[i] || calculateWinner(squares)) {
             return;
@@ -47,17 +53,20 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     const winner = calculateWinner(squares);
     const isDraw = !winner && squares.every(square => square !== null);
     let status;
-    if (winner) {
-        status = "Winner: " + winner + "!";
-        if (!confettiLaunched) {
+    React.useEffect(() => {
+        if (winner && !confettiLaunched) {
             launchConfetti(); // CONFETTI!!!!!
             setConfettiLaunched(true);
         }
+    }, [winner, confettiLaunched]);
+    if (winner) {
+        status = "Winner: " + winner + "!";
     } else if (isDraw) {
         status = "It's a draw!";
     } else {
         status = "Next player: " + (xIsNext ? "X" : "O");
     }
+
     return (
         <>
             <div className="board-container">
@@ -96,6 +105,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
         </>
     );
 }
+
 function launchConfetti() {
     confetti({
         particleCount: 1000,
@@ -117,9 +127,9 @@ export default function Game({ isOfflineMode }) {
     const [draws, setDraws] = useState(0);
     const [showOverlay, setShowOverlay] = useState(true);
     const [confettiLaunched, setConfettiLaunched] = useState(false);
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const xIsNext = currentMove % 2 === 0;
-    const currentSquares = history[currentMove];
+    const currentSquares = history[currentMove] || Array(9).fill(null);
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -127,10 +137,18 @@ export default function Game({ isOfflineMode }) {
             async function fetchGameState() {
                 try {
                     const gameState = await getGameState();
-                    setHistory([gameState]);
-                    setCurrentMove(gameState.filter(square => square !== null).length);
+                    if (Array.isArray(gameState) && gameState.length === 9) {
+                        setHistory([gameState]);
+                        setCurrentMove(gameState.filter(square => square !== null).length);
+                    } else {
+                        console.error('Invalid game state:', gameState);
+                        setHistory([Array(9).fill(null)]);
+                        setCurrentMove(0);
+                    }
                 } catch (error) {
                     console.error('Failed to fetch current game state', error);
+                    setHistory([Array(9).fill(null)]);
+                    setCurrentMove(0);
                 }
             }
             fetchGameState();
@@ -139,6 +157,12 @@ export default function Game({ isOfflineMode }) {
 
     const winner = calculateWinner(currentSquares);
     const isDraw = !winner && currentSquares.every(square => square !== null);
+
+    useEffect(() => {
+        if (winner) {
+            launchConfetti();
+        }
+    }, [winner]);
 
     const gameOver = winner || isDraw;
 
@@ -181,16 +205,22 @@ export default function Game({ isOfflineMode }) {
             try {
                 let statResult;
                 if (result === 'X' && xIsNext) statResult = 'win';
-                else if (result === 'O' && !xIsNext) statResult = 'win';
+                else if (result === 'O' && !xIsNext) statResult = 'loss';
                 else if (result === 'draw') statResult = 'draw';
-                else statResult = 'loss';
 
-                await updateStats(user._id, statResult);
+                const updatedStats = await updateStats(user._id, statResult);
+
+                setXScore(updatedStats.wins);
+                setOScore(updatedStats.losses);
+                setDraws(updatedStats.draws);
+
+                updateUser({ ...user, stats: updatedStats });
             } catch (error) {
                 console.error('Failed to update overall stats:', error);
             }
         }
     }
+
     async function resetGame() {
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
@@ -205,6 +235,7 @@ export default function Game({ isOfflineMode }) {
             }
         }
     }
+
     function toggleOverlay() {
         setShowOverlay(!showOverlay);
     }
@@ -220,7 +251,6 @@ export default function Game({ isOfflineMode }) {
         } else {
             description = 'Go to game start';
         }
-
         return (
             <li key={move}>
                 <button onClick={() => jumpTo(move)}>{description}</button>

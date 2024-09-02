@@ -6,7 +6,7 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// This route handles registering
+// POST route for registration. 
 router.post('/register', async (req, res) => {
     try {
         // Get the username & password from user.

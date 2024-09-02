@@ -10,10 +10,10 @@ const API_URL = 'http://localhost:5001/api/auth';
 const GAME_URL = 'http://localhost:5001/api/game';
 
 /// Define an asynchronus function that registers a new user.
-/// Makes a post request to the register endpoint.
+/// Makes a POST request to the register endpoint.
 export const register = async (username, password) => {
     try {
-        // Make a post request to /api/auth/register with parameters username & password
+        // Make a POST request to /api/auth/register with parameters username & password
         // Since this is an async function, we can use the await keyword to have it run like a sync func.
         // We wait for the Promise, which in this case is what axios.post returns, to either fulfill or fail and set it equal to response.
         const response = await axios.post(`${API_URL}/register`, { username, password });
@@ -26,19 +26,30 @@ export const register = async (username, password) => {
     }
 };
 
+/// Define an async function for logging in, taking parameters username & password
 export const login = async (username, password) => {
     try {
+        // Send a POST request to our login route
+        // axios.post returns a Promise.
         const response = await axios.post(`${API_URL}/login`, { username, password });
 
+        // If we successfully login, we send a GET request to our user-stats route.
+        // This ensures on login we have the stats tied with the account so that we can display them.
         const userStatsResponse = await axios.get(`${API_URL}/user-stats`, {
+            // Create a header object
             headers: {
+                // Use authorization header
+                // response.data.token should have the token to prove that the user is authenticated since there was a successful login.
                 'Authorization': `Bearer ${response.data.token}`
             }
         });
+        // If both the POST and GET request are completed without failure then we spread all props from POST request
+        // and make new object with both login data and stats combined.
         return {
             ...response.data,
             stats: userStatsResponse.data.stats
         };
+        // If GET or POST fail, throw an error.
     } catch (error) {
         console.error('Error logging in:', error);
         throw error
@@ -49,6 +60,9 @@ export async function getGameState() {
     try {
         const response = await axios.get(`${GAME_URL}/state`, {
             headers: {
+                // Everything is similar to previous funcs, other than this line.
+                // Since we are no longer using auth routes and our response doesn't contain login information,
+                // We get the token from local storage since we assume that we are already logged in.
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
             },
         });
@@ -65,7 +79,6 @@ export async function updateGameState(newState) {
             { newState },
             {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
             }

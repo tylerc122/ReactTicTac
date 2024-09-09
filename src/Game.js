@@ -1,3 +1,5 @@
+/// Defines game logic.
+
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { getGameState, updateGameState, updateStats } from './api';

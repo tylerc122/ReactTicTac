@@ -17,7 +17,7 @@ function Login() {
                 console.log('Registration success!');
                 setIsRegistering(false);
             } else {
-                // Call login from the API
+                // Call login from API
                 const data = await login(username, password);
                 authLogin({
                     ...data,

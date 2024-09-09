@@ -74,48 +74,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-/// POST route for updating stats.
-router.post('/updateStats', async (req, res) => {
-    try {
-
-        // Get the elements we need from the request body to update stats.
-        const { userId, result } = req.body;
-        // Set our user const to the user we find by findById.
-        const user = await User.findById(userId);
-
-        // If user is null, meaning the userId isn't valid in our DB
-        if (!user) {
-            // Make sure we know that the user wasn't found.
-            return res.status(404).json({ error: 'User was not found' });
-        }
-
-        // Switch case so we can easily update stats tied to a profile
-        switch (result) {
-            case 'win':
-                user.stats.wins += 1;
-                break;
-            case 'loss':
-                user.stats.losses += 1;
-                break;
-            case 'draw':
-                user.stats.draws += 1;
-                break;
-            default:
-                return res.status(400).json({ error: 'Not a valid result' });
-        }
-
-        // Save the changes made to the user stats.
-        await user.save();
-
-        // Log that the account stats were updated correctly. 
-        res.json({ message: 'Account statistics updated successfully', stats: user.stats });
-    } catch (error) {
-        // Unless an error is caught, in that case log the error.
-        console.error('Error updating account statistics', error);
-        res.status(500).json({ error: 'Error updating account statistics' });
-    }
-});
-
 /// GET route for getting the stats tied to an account.
 router.get('/user-stats', auth, async (req, res) => {
     try {

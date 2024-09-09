@@ -1,3 +1,4 @@
+/// Defines how all files interact with one another.
 import React, { useState } from 'react';
 import Login from './Login';
 import Game from './Game';

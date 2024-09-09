@@ -1,3 +1,5 @@
+/// Defines Statistics for each user.
+
 import React from 'react';
 import { useAuth } from './AuthContext';
 

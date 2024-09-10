@@ -1,4 +1,5 @@
 // models/Game.js
+/// Model for how games are stored
 
 const mongoose = require('mongoose');
 

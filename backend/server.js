@@ -31,7 +31,6 @@ app.use('/api/game', gameRoutes);
 
 // Connects using the url we provided in .env file.
 mongoose.connect(process.env.MONGODB_URI)
-
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('MongoDB connection error:', err));
 

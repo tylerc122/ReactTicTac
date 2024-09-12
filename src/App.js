@@ -38,7 +38,7 @@ function App() {
               <button onClick={() => selectOfflineGameType('bot')}>Play Against Bot</button>
             </div>
           )}
-          {offlineGameType && <Game isOfflineMode={true} gameType={offlineGameType} />}
+          {offlineGameType && <Game isOfflineMode={true} offlineGameType={offlineGameType} />}
         </>
       ) : (
         user ? <Game isOfflineMode={false} offlineGameType={null} /> : <Login />

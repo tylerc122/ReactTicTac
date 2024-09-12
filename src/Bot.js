@@ -21,13 +21,16 @@ class Bot {
     }
 
     findWinningMove(board, player) {
+        // All possible win conditions
         const winPatterns = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8], // Win by row
             [0, 3, 6], [1, 4, 7], [2, 5, 8], // Win by col
             [0, 4, 8], [2, 4, 6] // Win by diagonal
         ];
 
+        // Iterate through each winning pattern
         for (let pattern of winPatterns) {
+
             const [a, b, c] = pattern;
             if (board[a] === player && board[b] === player && board[c] == null) {
                 return c;
@@ -43,6 +46,7 @@ class Bot {
     }
 
     playMove(board, move) {
+        // Copy board so that we can play a move and return the board to be updated by Game.js
         const newBoard = [...board];
         newBoard[move] = this.player;
         return newBoard;
@@ -50,6 +54,7 @@ class Bot {
 
     playRandomMove(board) {
 
+        // Got from online, didn't know how to check for available moves.
         const availableMoves = board.reduce((acc, cell, index) => {
             if (cell == null) {
                 acc.push(index);
@@ -60,6 +65,8 @@ class Bot {
         if (availableMoves.length === 0) {
             return board;
         }
+
+        // Randomly move.
         const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
         return this.playMove(board, randomMove);
     }

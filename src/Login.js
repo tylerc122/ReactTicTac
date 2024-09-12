@@ -12,12 +12,14 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Checking if registering
             if (isRegistering) {
+                // Registration logic
                 await register(username, password);
                 console.log('Registration success!');
                 setIsRegistering(false);
             } else {
-                // Call login from the API
+                // Call login from API
                 const data = await login(username, password);
                 authLogin({
                     ...data,
@@ -33,6 +35,7 @@ function Login() {
     return (
         <form onSubmit={handleSubmit}>
             <input
+                // On submit
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}

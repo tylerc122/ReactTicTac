@@ -53,8 +53,8 @@ class Bot {
         const availableMoves = board.reduce((acc, cell, index) => {
             if (cell == null) {
                 acc.push(index);
-                return acc;
             }
+            return acc;
         }, []);
 
         if (availableMoves.length === 0) {

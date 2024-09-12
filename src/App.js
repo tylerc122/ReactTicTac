@@ -21,6 +21,7 @@ function App() {
   const selectOfflineGameType = (type) => {
     setOfflineGameType(type);
   }
+
   return (
     <div className="App">
       <Navbar />
@@ -40,7 +41,7 @@ function App() {
           {offlineGameType && <Game isOfflineMode={true} gameType={offlineGameType} />}
         </>
       ) : (
-        user ? <Game isOfflineMode={false} /> : <Login />
+        user ? <Game isOfflineMode={false} offlineGameType={null} /> : <Login />
       )}
     </div>
   );

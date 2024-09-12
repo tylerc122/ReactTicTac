@@ -122,7 +122,7 @@ function launchConfetti() {
     });
 }
 
-export default function Game({ isOfflineMode }) {
+export default function Game({ isOfflineMode, offlineGameType }) {
     const [history, setHistory] = useState([Array(9).fill(null)]);
     const [currentMove, setCurrentMove] = useState(0);
     const [xScore, setXScore] = useState(0);
@@ -144,7 +144,7 @@ export default function Game({ isOfflineMode }) {
     }, [isOfflineMode, offlineGameType]);
 
     useEffect(() => {
-        if (isOfflineMode && offlineGameType == 'bot' && !xIsNext && !calculateWinner(currentSquares) && !currentSquares.every(square => square != null))
+        if (isOfflineMode && offlineGameType == 'bot' && !xIsNext && !calculateWinner(currentSquares) && !currentSquares.some(square => square === null))
             setTimeout(() => {
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);

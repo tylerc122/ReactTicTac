@@ -144,7 +144,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [isOfflineMode, offlineGameType]);
 
     useEffect(() => {
-        if (isOfflineMode && offlineGameType == 'bot' && !xIsNext && !calculateWinner(currentSquares) && !currentSquares.some(square => square === null))
+        if (isOfflineMode && offlineGameType == 'bot' && !xIsNext && !calculateWinner(currentSquares) && currentSquares.some(square => square === null))
             setTimeout(() => {
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);

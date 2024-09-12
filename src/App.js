@@ -9,11 +9,16 @@ import Statistics from './Statistics';
 function App() {
   const { user } = useAuth();
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [offlineGameType, setOfflineGameType] = useState(null); // For now, just local and bot play, online comes much later sounds hard to do
 
   const toggleOfflineMode = () => {
     setIsOfflineMode(!isOfflineMode);
+    setOfflineGameType(null);
   }
 
+  const selectOfflineGameType = (type) => {
+    setOfflineGameType(type);
+  }
   return (
     <div className="App">
       <Navbar />
@@ -22,7 +27,19 @@ function App() {
         {isOfflineMode ? 'Switch to Online Mode' : 'Switch to Offline Mode'}
       </button>
       {user && <Statistics />}
-      {user || isOfflineMode ? <Game isOfflineMode={isOfflineMode} /> : <Login />}
+      {isOfflineMode ? (
+        <>
+          {!offlineGameType && (
+            <div>
+              <button onClick={() => selectOfflineGameType('local')}>Play with a Friend</button>
+              <button onClick={() => selectOfflineGameType('bot')}>Play Against Bot</button>
+            </div>
+          )}
+          {offlineGameType && <Game isOfflineMode={true} gameType={offlineGameType} />}
+        </>
+      ) : (
+        user ? <Game isOfflineMode={false} /> : <Login />
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// Defines the format of the navbar at the top of the screen.
 import React from 'react';
 import { useAuth } from './AuthContext';
 

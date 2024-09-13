@@ -11,9 +11,11 @@
 - Unique accounts
 - Offline mode
 - Account statistics
-- Play against a bot (***COMING SOON!!***)
-- Leaderboard (***COMING SOON!!***)
+- Play against a bot
+- Different bot difficulties (***COMING SOON!!***)
 - Online play (***COMING SOON!!***)
+- Leaderboard (***COMING SOON!!***)
+
 
 
 ## Technologies Used

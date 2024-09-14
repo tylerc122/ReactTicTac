@@ -28,10 +28,12 @@ function Login() {
                 });
             }
         } catch (error) {
+            // Actually have message indicating failure instead of just logging in the console.
             setMessage(isRegistering ? 'Registration failed. Please refresh and try again.' : 'Login failed. Double check your credentials.')
         }
     };
 
+    // Style for the message, currently, message is blue if successful, red if anything but successful.
     const messageStyle = {
         padding: '10px',
         marginBottom: '10px',

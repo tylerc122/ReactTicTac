@@ -147,7 +147,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
 
     useEffect(() => {
         // Checks if offline, playing against bot, x isn't next, meaning its the bots turn, there's no winner, and some squares are open.
-        if (isOfflineMode && offlineGameType == 'bot' && !xIsNext && !calculateWinner(currentSquares) && currentSquares.some(square => square === null))
+        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && currentSquares.some(square => square === null))
             // Wait a second before playing a move thru setTimeout
             setTimeout(() => {
                 // Make the move thru Bot.js and then handlePlay in this file with the given move.
@@ -165,6 +165,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             if (Array.isArray(gameState) && gameState.length === 9) {
                 setHistory([gameState]);
                 setCurrentMove(gameState.filter(square => square !== null).length);
+                // Based on where we are in the game, assign these vars.
                 setXIsNext((gameState.filter(square => square !== null).length) % 2 === 0);
                 setGameEnded(calculateWinner(gameState) !== null || gameState.every(square => square !== null));
             } else {

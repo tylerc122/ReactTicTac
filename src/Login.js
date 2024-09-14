@@ -7,6 +7,7 @@ function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
+    const [message, setMessage] = useState('')
     const { login: authLogin } = useAuth();
 
     const handleSubmit = async (e) => {
@@ -16,7 +17,7 @@ function Login() {
             if (isRegistering) {
                 // Registration logic
                 await register(username, password);
-                console.log('Registration success!');
+                setMessage('Registration success! You are now able to log in');
                 setIsRegistering(false);
             } else {
                 // Call login from API
@@ -25,33 +26,47 @@ function Login() {
                     ...data,
                     username: username
                 });
-                console.log('Login successful', data);
             }
         } catch (error) {
-            console.error(isRegistering ? 'Registration failed' : 'Login failed', error);
+            setMessage(isRegistering ? 'Registration failed. Please refresh and try again.' : 'Login failed. Double check your credentials.')
         }
     };
 
+    const messageStyle = {
+        padding: '10px',
+        marginBottom: '10px',
+        borderRadius: '4px',
+        fontWeight: 'bold',
+        backgroundColor: message === 'Registration success! You are now able to log in' ? '#e6f3ff' : '#f8d7da',
+        color: message === 'Registration success! You are now able to log in' ? '#0066cc' : '#721c24',
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                // On submit
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-            />
-            <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-            />
-            <button type="submit">{isRegistering ? 'Register' : 'Login'}</button>
-            <button type="button" onClick={() => setIsRegistering(!isRegistering)}>
-                {isRegistering ? 'Switch to Login' : 'Switch to Register'}
-            </button>
-        </form>
+        <div>
+            {message && <div style={messageStyle}>{message}</div>}
+            <form onSubmit={handleSubmit}>
+                <input
+                    // On submit
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                />
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                />
+                <button type="submit">{isRegistering ? 'Register' : 'Login'}</button>
+                <button type="button" onClick={() => {
+                    setIsRegistering(!isRegistering);
+                    setMessage('');
+                }}>
+                    {isRegistering ? 'Switch to Login' : 'Switch to Register'}
+                </button>
+            </form>
+        </div>
     );
 }
 

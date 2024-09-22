@@ -243,6 +243,12 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 setDraws(updatedStats.draws);
 
                 await updateGameState(Array(9).fill(null));
+                
+                updateUser({
+                    ...user,
+                    stats: updatedStats
+                });
+
             } catch (error) {
                 console.error('Failed to update overall stats:', error);
             }

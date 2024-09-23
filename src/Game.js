@@ -136,6 +136,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const currentSquares = history[currentMove] || Array(9).fill(null);
     const [botDifficulty, setBotDifficulty] = useState(null);
     const [bot, setBot] = useState(null);
+    const [difficultySelected, setDifficultySelected] = useState(false);
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -143,6 +144,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         } else {
             resetGame();
         }
+        setDifficultySelected(false);
     }, [isOfflineMode, offlineGameType]);
 
     useEffect(() => {
@@ -168,6 +170,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
         setBot(MakeBot.createBot(difficulty));
+        setDifficultySelected(true);
+        resetGame();
+    }
+
+    function resetDifficultySelection(){
+        setDifficultySelected(false);
+        setBotDifficulty(null);
+        setBot(null);
         resetGame();
     }
     async function fetchGameState() {
@@ -307,7 +317,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
 
     return (
         <div className="game-container">
-                    {isOfflineMode && offlineGameType === 'bot' ? (
+                    {isOfflineMode && offlineGameType === 'bot' && !difficultySelected ? (
                 <div className="bot-difficulty-selection">
                     <h2>Select Bot Difficulty</h2>
                     <button onClick={() => handleBotDifficulty('easy')}>Easy</button>
@@ -321,6 +331,9 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 <div>X Score: {xScore}</div>
                 <div>O Score: {oScore}</div>
                 <div>Draws: {draws}</div>
+                {isOfflineMode && offlineGameType === 'bot' && (
+                        <button onClick={resetDifficultySelection}>Change Difficulty</button>
+                    )}
             </div>
             <div className="game">
                 <div className="game-board">

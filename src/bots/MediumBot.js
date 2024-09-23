@@ -1,12 +1,11 @@
-import Bot from './Bot.js';
+import  Bot  from './Bot.js';
 
 export class MediumBot extends Bot {
-    makeMove(board){
-       const winningMove  = this.findWinningMove(board, this.player);
-       if(this.winningMove !== -1){
-        return this.playMove(board, winningMove);
-        
-       }
-       return this.playRandomMove(board);
+    makeMove(board) {
+        const winningMove = this.findWinningMove(board, this.player);
+        if (winningMove !== -1) {
+            return this.playMove(board, winningMove);
+        }
+        return this.playRandomMove(board);
     }
 }

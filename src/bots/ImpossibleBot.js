@@ -1,4 +1,4 @@
-import { Bot } from './Bot.js';
+import Bot  from './Bot.js';
 
 export class ImpossibleBot extends Bot {
     // Need an algorithm that can't be beaten, maybe just blocking moves?

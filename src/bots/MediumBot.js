@@ -1,8 +1,8 @@
-import { Bot } from './Bot.js';
+import Bot from './Bot.js';
 
 export class MediumBot extends Bot {
     makeMove(board){
-       const winningMove  = this.makeWinningMove(board, this.player);
+       const winningMove  = this.findWinningMove(board, this.player);
        if(this.winningMove !== -1){
         return this.playMove(board, winningMove);
         

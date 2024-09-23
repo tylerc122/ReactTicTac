@@ -1,4 +1,4 @@
-import { Bot } from './Bot.js';
+import  Bot  from './Bot.js';
 
 export class HardBot extends Bot {
     makeMove(board) {

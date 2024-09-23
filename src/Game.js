@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { getGameState, updateGameState, updateStats } from './api';
 import { useAuth } from './AuthContext';
-import {MakeBots} from './MakeBots';
+import { MakeBot } from './bots/MakeBot';
 
 function calculateWinner(squares) {
     if (!Array.isArray(squares)) {
@@ -134,8 +134,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [gameEnded, setGameEnded] = useState(false);
     const { user, updateUser } = useAuth();
     const currentSquares = history[currentMove] || Array(9).fill(null);
-    const [botDifficulty, setBotDifficulty] = useState('medium');
-    const bot = react.useMemo(() => MakeBots.createBot(botDifficulty), [botDifficulty]);
+    const [botDifficulty, setBotDifficulty] = useState(null);
+    const [bot, setBot] = useState(null);
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -144,6 +144,12 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             resetGame();
         }
     }, [isOfflineMode, offlineGameType]);
+
+    useEffect(() => {
+        if(offlineGameType === 'bot' && botDifficulty){
+            setBot(MakeBot.createBot(botDifficulty));
+        }
+    }, [offlineGameType, botDifficulty]);
 
 
     useEffect(() => {
@@ -157,9 +163,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 // 500 ms delay
             }, 500);
         // Re-renders on given components.
-    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType]);
+    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
 
-
+    function handleBotDifficulty(difficulty){
+        setBotDifficulty(difficulty);
+        setBot(MakeBot.createBot(difficulty));
+        resetGame();
+    }
     async function fetchGameState() {
         try {
             const gameState = await getGameState();
@@ -297,6 +307,16 @@ export default function Game({ isOfflineMode, offlineGameType }) {
 
     return (
         <div className="game-container">
+                    {isOfflineMode && offlineGameType === 'bot' ? (
+                <div className="bot-difficulty-selection">
+                    <h2>Select Bot Difficulty</h2>
+                    <button onClick={() => handleBotDifficulty('easy')}>Easy</button>
+                    <button onClick={() => handleBotDifficulty('medium')}>Medium</button>
+                    <button onClick={() => handleBotDifficulty('hard')}>Hard</button>
+                    <button onClick={() => handleBotDifficulty('impossible')}>Impossible</button>
+                </div>
+            ) : (
+            <>
             <div className={`scoreboard ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
                 <div>X Score: {xScore}</div>
                 <div>O Score: {oScore}</div>
@@ -314,12 +334,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                         returnToWinScreen={returnToWinScreen}
                         confettiLaunched={confettiLaunched}
                         setConfettiLaunched={setConfettiLaunched}
-                        gameEnded={gameEnded} />
+                        gameEnded={gameEnded} 
+                        />
                 </div>
                 <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
                     <ol>{moves}</ol>
                 </div>
             </div>
-        </div>
-    );
-}
+        </>
+    )}
+</div>
+)};

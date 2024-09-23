@@ -71,5 +71,4 @@ class Bot {
         return this.playMove(board, randomMove);
     }
 }
-
 export default Bot;

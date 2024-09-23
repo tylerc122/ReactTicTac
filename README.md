@@ -7,18 +7,18 @@
 ![Demo](./assets/demo.gif)
 
 ## Features
+
 - Fun tic-tac-toe gameplay
 - Unique accounts
 - Offline mode
 - Account statistics
 - Play against a bot
-- Different bot difficulties (***COMING SOON!!***)
-- Online play (***COMING SOON!!***)
-- Leaderboard (***COMING SOON!!***)
-
-
+- Various bot difficulties
+- Online play (**_COMING SOON!!_**)
+- Leaderboard (**_COMING SOON!!_**)
 
 ## Technologies Used
+
 - React
 - NodeJS
 - MongoDB
@@ -27,4 +27,4 @@
 
 ## Installation
 
-***WIP***
+**_WIP_**

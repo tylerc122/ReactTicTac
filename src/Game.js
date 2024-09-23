@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { getGameState, updateGameState, updateStats } from './api';
 import { useAuth } from './AuthContext';
-import Bot from './Bot';
+import {MakeBots} from './MakeBots';
 
 function calculateWinner(squares) {
     if (!Array.isArray(squares)) {
@@ -134,7 +134,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [gameEnded, setGameEnded] = useState(false);
     const { user, updateUser } = useAuth();
     const currentSquares = history[currentMove] || Array(9).fill(null);
-    const bot = React.useMemo(() => new Bot(), []);
+    const [botDifficulty, setBotDifficulty] = useState('medium');
+    const bot = react.useMemo(() => MakeBots.createBot(botDifficulty), [botDifficulty]);
 
     useEffect(() => {
         if (!isOfflineMode) {

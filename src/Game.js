@@ -137,6 +137,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [botDifficulty, setBotDifficulty] = useState(null);
     const [bot, setBot] = useState(null);
     const [difficultySelected, setDifficultySelected] = useState(false);
+    const [playerStarts, setPlayerStarts] = useState(true);
+    const [showCoinFlip, setShowCoinFlip] = useState(false);
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -150,6 +152,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     useEffect(() => {
         if(offlineGameType === 'bot' && botDifficulty){
             setBot(MakeBot.createBot(botDifficulty));
+            resetGame();
         }
     }, [offlineGameType, botDifficulty]);
 
@@ -166,6 +169,16 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }, 500);
         // Re-renders on given components.
     }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
+
+    function coinFlip() {
+        setShowCoinFlip(true);
+        setTimeout(() => {
+            const result = Math.random() < 0.5;
+            setPlayerStarts(result);
+            setXIsNext(result);
+            setShowCoinFlip(false);
+        }, 1000);
+    }
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
@@ -274,6 +287,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 console.error('Failed to update overall stats:', error);
             }
         }
+
+        setTimeout(() => {
+            resetGame();
+        }, 2000);
     }
 
     async function resetGame() {
@@ -283,6 +300,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setShowOverlay(true);
         setConfettiLaunched(false);
         setGameEnded(false);
+        coinFlip();
 
         if (!isOfflineMode) {
             try {
@@ -334,6 +352,11 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 {isOfflineMode && offlineGameType === 'bot' && (
                         <button onClick={resetDifficultySelection}>Change Difficulty</button>
                     )}
+                    {showCoinFlip ? (
+                            <div>Flipping coin...</div>
+                        ) : (
+                    <div>{playerStarts ? "You start" : "Bot starts"}</div>
+                        )}
             </div>
             <div className="game">
                 <div className="game-board">

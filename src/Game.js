@@ -139,12 +139,15 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [difficultySelected, setDifficultySelected] = useState(false);
     const [playerStarts, setPlayerStarts] = useState(true);
     const [showCoinFlip, setShowCoinFlip] = useState(false);
+    const [shouldCoinFlip, setShouldCoinFlip] = useState(false);
+    const [gameInitialized, setGameInitialized] = useState(false);
+    const [isBotTurn, setIsBotTurn] = useState(false);
 
     useEffect(() => {
         if (!isOfflineMode) {
             fetchGameState();
         } else {
-            resetGame();
+            setGameInitialized(false);
         }
         setDifficultySelected(false);
     }, [isOfflineMode, offlineGameType]);
@@ -152,33 +155,44 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     useEffect(() => {
         if(offlineGameType === 'bot' && botDifficulty){
             setBot(MakeBot.createBot(botDifficulty));
-            resetGame();
+            setGameInitialized(false);
         }
     }, [offlineGameType, botDifficulty]);
 
+    useEffect(() => {
+        if(!gameInitialized){
+            resetGame();
+        }
+    }, [gameInitialized]);
 
     useEffect(() => {
         // Checks if offline, playing against bot, x isn't next, meaning its the bots turn, there's no winner, and some squares are open.
-        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && currentSquares.some(square => square === null))
+        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && gameInitialized && currentSquares.some(square => square === null)){
             // Wait a second before playing a move thru setTimeout
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 // Make the move thru Bot.js and then handlePlay in this file with the given move.
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);
+                setIsBotTurn(false);
                 // 500 ms delay
             }, 500);
+            return () => clearTimeout(timer);
+        }
         // Re-renders on given components.
-    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
+    }, [currentSquares, isBotTurn, isOfflineMode, offlineGameType, bot, gameInitialized]);
 
-    function coinFlip() {
-        setShowCoinFlip(true);
-        setTimeout(() => {
-            const result = Math.random() < 0.5;
-            setPlayerStarts(result);
-            setXIsNext(result);
-            setShowCoinFlip(false);
-        }, 1000);
-    }
+function coinFlip() {
+    if(showCoinFlip || gameInitialized) return;
+    setShowCoinFlip(true);
+    setTimeout(() => {
+        const result = Math.random() < 0.5;
+        setPlayerStarts(result);
+        setXIsNext(result);
+        setIsBotTurn(!result);
+        setShowCoinFlip(false);
+        setGameInitialized(true);
+    }, 1000);
+}
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
@@ -191,7 +205,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setDifficultySelected(false);
         setBotDifficulty(null);
         setBot(null);
-        resetGame();
+        setGameInitialized(false);
     }
     async function fetchGameState() {
         try {
@@ -222,6 +236,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
         setXIsNext(!xIsNext);
+        setIsBotTurn(!isBotTurn);
 
         if (!isOfflineMode) {
             try {
@@ -289,14 +304,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
 
         setTimeout(() => {
-            resetGame();
+            setGameInitialized(false);
         }, 2000);
     }
 
     async function resetGame() {
+        if(showCoinFlip || gameInitialized) return;
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
-        setXIsNext(true);
         setShowOverlay(true);
         setConfettiLaunched(false);
         setGameEnded(false);
@@ -310,6 +325,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }
         }
     }
+
+    useEffect(() => {
+        if(shouldCoinFlip){
+            coinFlip();
+            setShouldCoinFlip(false);
+        }
+    }, [shouldCoinFlip]);
 
     function toggleOverlay() {
         setShowOverlay(!showOverlay);

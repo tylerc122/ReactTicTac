@@ -1,5 +1,6 @@
 import  Bot  from './Bot.js';
 
+// Medium bot only tries to win.
 export class MediumBot extends Bot {
     makeMove(board) {
         const winningMove = this.findWinningMove(board, this.player);

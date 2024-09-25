@@ -1,5 +1,6 @@
 import  Bot  from './Bot.js';
 
+// Hard bot plays a combination of winning moves and blocking moves, plays random when none of those options are available.
 export class HardBot extends Bot {
     makeMove(board) {
       const winningMove = this.findWinningMove(board, this.player);

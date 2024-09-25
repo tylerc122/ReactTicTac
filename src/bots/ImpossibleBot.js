@@ -1,5 +1,6 @@
 import Bot from './Bot.js';
 
+// Not possible to win against this guy (in theory I haven't tested it)
 export class ImpossibleBot extends Bot {
   // ACQUIRED THIS ALGORITHM FROM CHATGPT
     makeMove(board) {

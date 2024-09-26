@@ -35,11 +35,11 @@ function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
 
-function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen }) {
+function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen, showCoinFlip, isBotTurn, isProcessingTurn }) {
     const [confettiLaunched, setConfettiLaunched] = React.useState(false);
 
     function handleClick(i) {
-        if (squares[i] || calculateWinner(squares)) {
+        if (isBotTurn || isProcessingTurn || showCoinFlip || squares[i] || calculateWinner(squares)) {
             return;
         }
 
@@ -139,12 +139,16 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [difficultySelected, setDifficultySelected] = useState(false);
     const [playerStarts, setPlayerStarts] = useState(true);
     const [showCoinFlip, setShowCoinFlip] = useState(false);
+    const [shouldCoinFlip, setShouldCoinFlip] = useState(false);
+    const [gameInitialized, setGameInitialized] = useState(false);
+    const [isBotTurn, setIsBotTurn] = useState(false);
+    const [isProcessingTurn, setIsProcessingTurn] = useState(false);
 
     useEffect(() => {
         if (!isOfflineMode) {
             fetchGameState();
         } else {
-            resetGame();
+            setGameInitialized(false);
         }
         setDifficultySelected(false);
     }, [isOfflineMode, offlineGameType]);
@@ -152,34 +156,48 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     useEffect(() => {
         if(offlineGameType === 'bot' && botDifficulty){
             setBot(MakeBot.createBot(botDifficulty));
-            resetGame();
+            setGameInitialized(false);
         }
     }, [offlineGameType, botDifficulty]);
 
+    useEffect(() => {
+        if(!gameInitialized && !gameEnded){
+            resetGame();
+        }
+    }, [gameInitialized, gameEnded]);
 
     useEffect(() => {
         // Checks if offline, playing against bot, x isn't next, meaning its the bots turn, there's no winner, and some squares are open.
-        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && currentSquares.some(square => square === null))
+        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)){
             // Wait a second before playing a move thru setTimeout
-            setTimeout(() => {
+            setIsBotTurn(true);
+            setIsProcessingTurn(true);
+            const timer = setTimeout(() => {
                 // Make the move thru Bot.js and then handlePlay in this file with the given move.
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);
+                setIsBotTurn(false);
+                setIsProcessingTurn(false);
                 // 500 ms delay
             }, 500);
+            return () => clearTimeout(timer);
+        }
         // Re-renders on given components.
     }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
 
 
-    function coinFlip() {
-        setShowCoinFlip(true);
-        setTimeout(() => {
-            const result = Math.random() < 0.5;
-            setPlayerStarts(result);
-            setXIsNext(result);
-            setShowCoinFlip(false);
-        }, 1000);
-    }
+function coinFlip() {
+    if(showCoinFlip || gameInitialized) return;
+    setShowCoinFlip(true);
+    setTimeout(() => {
+        const result = Math.random() < 0.5;
+        setPlayerStarts(result);
+        setXIsNext(result);
+        setIsBotTurn(!result);
+        setShowCoinFlip(false);
+        setGameInitialized(true);
+    }, 1000);
+}
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
@@ -192,7 +210,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setDifficultySelected(false);
         setBotDifficulty(null);
         setBot(null);
-        resetGame();
+        setGameInitialized(false);
     }
     
     async function fetchGameState() {
@@ -217,6 +235,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     async function handlePlay(nextSquares) {
 
         if (gameEnded) {
+            setIsProcessingTurn(false);
             return;
         }
 
@@ -240,6 +259,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             setGameEnded(true);
             handleGameEnd(newWinner || 'draw');
         }
+        setIsProcessingTurn(false);
     }
 
     const winner = calculateWinner(currentSquares);
@@ -291,14 +311,15 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
 
         setTimeout(() => {
-            resetGame();
+            setGameInitialized(false);
         }, 2000);
     }
 
     async function resetGame() {
+        if(showCoinFlip || (!gameEnded && gameInitialized)) return;
+
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
-        setXIsNext(true);
         setShowOverlay(true);
         setConfettiLaunched(false);
         setGameEnded(false);
@@ -312,6 +333,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }
         }
     }
+
+    useEffect(() => {
+        if(shouldCoinFlip){
+            coinFlip();
+            setShouldCoinFlip(false);
+        }
+    }, [shouldCoinFlip]);
 
     function toggleOverlay() {
         setShowOverlay(!showOverlay);
@@ -373,6 +401,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                         confettiLaunched={confettiLaunched}
                         setConfettiLaunched={setConfettiLaunched}
                         gameEnded={gameEnded} 
+                        isBotTurn={isBotTurn || isProcessingTurn}
                         />
                 </div>
                 <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>

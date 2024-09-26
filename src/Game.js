@@ -170,6 +170,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         // Re-renders on given components.
     }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
 
+
     function coinFlip() {
         setShowCoinFlip(true);
         setTimeout(() => {
@@ -193,6 +194,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setBot(null);
         resetGame();
     }
+    
     async function fetchGameState() {
         try {
             const gameState = await getGameState();

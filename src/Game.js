@@ -39,12 +39,11 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     const [confettiLaunched, setConfettiLaunched] = React.useState(false);
 
     function handleClick(i) {
-        if (isBotTurn || isProcessingTurn || showCoinFlip || squares[i] || calculateWinner(squares)) {
+        if (showCoinFlip || isBotTurn || isProcessingTurn || squares[i] || calculateWinner(squares)) {
             return;
         }
-
         const nextSquares = squares.slice();
-
+        
         if (xIsNext) {
             nextSquares[i] = 'X';
         } else {
@@ -185,8 +184,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
 
     function coinFlip() {
-        if(showCoinFlip || gameInitialized) return;
-        setShowCoinFlip(true);
+        if (showCoinFlip) return; // This check might be redundant, keeping it for safety
         setTimeout(() => {
             const result = Math.random() < 0.5;
             setPlayerStarts(result);
@@ -196,6 +194,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             setIsBotTurn(!result);
             setShowCoinFlip(false);
             setGameInitialized(true);
+            setIsProcessingTurn(false);
         }, 1000);
     }
 
@@ -237,16 +236,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
     }
 
-        async function handlePlay(nextSquares) {
-        if (gameEnded) {
+    async function handlePlay(nextSquares) {
+        if (gameEnded || showCoinFlip || !gameInitialized) {
             setIsProcessingTurn(false);
             return;
         }
 
-        // Determine the current player's symbol
         const currentPlayerSymbol = xIsNext ? 'X' : 'O';
-
-        // Update the squares with the correct symbol
         const updatedSquares = nextSquares.map((square, index) => {
             if (square !== currentSquares[index]) {
                 return currentPlayerSymbol;
@@ -257,7 +253,17 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         const nextHistory = [...history.slice(0, currentMove + 1), updatedSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
-        setXIsNext(!xIsNext);
+
+        const newWinner = calculateWinner(updatedSquares);
+        const newIsDraw = !newWinner && updatedSquares.every(square => square !== null);
+
+        if (newWinner || newIsDraw) {
+            setGameEnded(true);
+            setShowOverlay(true);  // Ensure overlay is shown immediately
+            handleGameEnd(newWinner || 'draw');
+        } else {
+            setXIsNext(!xIsNext);
+        }
 
         if (!isOfflineMode) {
             try {
@@ -267,16 +273,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }
         }
 
-        const newWinner = calculateWinner(updatedSquares);
-        const newIsDraw = !newWinner && updatedSquares.every(square => square !== null);
-
-        if (newWinner || newIsDraw) {
-            setGameEnded(true);
-            handleGameEnd(newWinner || 'draw');
-        }
         setIsProcessingTurn(false);
     }
-
     const winner = calculateWinner(currentSquares);
     const isDraw = !winner && currentSquares.every(square => square !== null);
 
@@ -325,28 +323,32 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }
         }
 
-        setTimeout(() => {
-            setGameInitialized(false);
-        }, 2000);
+        // Remove the timeout here to keep the game in the end state until the player chooses to reset
+        setGameInitialized(false);
     }
 
-    async function resetGame() {
-        if(showCoinFlip || (!gameEnded && gameInitialized)) return;
+ 
+    function resetGame() {
+        if (showCoinFlip) return; // Prevents multiple resets
+
+        setShowCoinFlip(true);
+        setIsProcessingTurn(true);
+        setGameInitialized(false);
+        setGameEnded(false);
+        setShowOverlay(false);
 
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
-        setShowOverlay(true);
         setConfettiLaunched(false);
-        setGameEnded(false);
-        coinFlip();
 
         if (!isOfflineMode) {
-            try {
-                await updateGameState(Array(9).fill(null));
-            } catch (error) {
+            updateGameState(Array(9).fill(null)).catch(error => {
                 console.error('Failed to reset game state', error);
-            }
+            });
         }
+
+        // Trigger coin flip immediately
+        coinFlip();
     }
 
     useEffect(() => {

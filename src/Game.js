@@ -143,6 +143,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [gameInitialized, setGameInitialized] = useState(false);
     const [isBotTurn, setIsBotTurn] = useState(false);
     const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+    const [playerSymbol, setPlayerSymbol] = useState('X');
+    const [botSymbol, setBotSymbol] = useState('O');
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -167,36 +169,41 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [gameInitialized, gameEnded]);
 
     useEffect(() => {
-        // Checks if offline, playing against bot, x isn't next, meaning its the bots turn, there's no winner, and some squares are open.
-        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)){
-            // Wait a second before playing a move thru setTimeout
+        // Check if it's the bot's turn
+        const isBotMove = (botSymbol === 'X' && xIsNext) || (botSymbol === 'O' && !xIsNext);
+        if (isOfflineMode && offlineGameType === 'bot' && isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
             setIsBotTurn(true);
             setIsProcessingTurn(true);
             const timer = setTimeout(() => {
-                // Make the move thru Bot.js and then handlePlay in this file with the given move.
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);
                 setIsBotTurn(false);
                 setIsProcessingTurn(false);
-                // 500 ms delay
             }, 500);
             return () => clearTimeout(timer);
         }
-        // Re-renders on given components.
-    }, [currentSquares, isBotTurn, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip]);
+    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
 
-function coinFlip() {
-    if(showCoinFlip || gameInitialized) return;
-    setShowCoinFlip(true);
-    setTimeout(() => {
-        const result = Math.random() < 0.5;
-        setPlayerStarts(result);
-        setXIsNext(result);
-        setIsBotTurn(!result);
-        setShowCoinFlip(false);
-        setGameInitialized(true);
-    }, 1000);
-}
+    function coinFlip() {
+        if(showCoinFlip || gameInitialized) return;
+        setShowCoinFlip(true);
+        setTimeout(() => {
+            const result = Math.random() < 0.5;
+            setPlayerStarts(result);
+            setXIsNext(true); // X always starts
+            setPlayerSymbol(result ? 'X' : 'O');
+            setBotSymbol(result ? 'O' : 'X');
+            setIsBotTurn(!result);
+            setShowCoinFlip(false);
+            setGameInitialized(true);
+        }, 1000);
+    }
+
+       useEffect(() => {
+        if (isOfflineMode && offlineGameType === 'bot' && bot) {
+            bot.setSymbol(botSymbol);
+        }
+    }, [botSymbol, isOfflineMode, offlineGameType, bot]);
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
@@ -232,7 +239,7 @@ function coinFlip() {
 
     async function handlePlay(nextSquares) {
 
-        if (gameEnded) {
+         if (gameEnded) {
             setIsProcessingTurn(false);
             return;
         }
@@ -380,11 +387,13 @@ function coinFlip() {
                 {isOfflineMode && offlineGameType === 'bot' && (
                         <button onClick={resetDifficultySelection}>Change Difficulty</button>
                     )}
-                    {showCoinFlip ? (
-                            <div>Flipping coin...</div>
-                        ) : (
-                    <div>{playerStarts ? "You start" : "Bot starts"}</div>
-                        )}
+                {showCoinFlip ? (
+                    <div>Flipping coin...</div>
+                ) : (
+                    <div>
+                        {playerStarts ? `You start as ${playerSymbol}` : `Bot starts as ${botSymbol}`}
+                    </div>
+                )}
             </div>
             <div className="game">
                 <div className="game-board">

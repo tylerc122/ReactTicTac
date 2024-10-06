@@ -237,28 +237,38 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
     }
 
-    async function handlePlay(nextSquares) {
-
-         if (gameEnded) {
+        async function handlePlay(nextSquares) {
+        if (gameEnded) {
             setIsProcessingTurn(false);
             return;
         }
 
-        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+        // Determine the current player's symbol
+        const currentPlayerSymbol = xIsNext ? 'X' : 'O';
+
+        // Update the squares with the correct symbol
+        const updatedSquares = nextSquares.map((square, index) => {
+            if (square !== currentSquares[index]) {
+                return currentPlayerSymbol;
+            }
+            return square;
+        });
+
+        const nextHistory = [...history.slice(0, currentMove + 1), updatedSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
         setXIsNext(!xIsNext);
 
         if (!isOfflineMode) {
             try {
-                await updateGameState(nextSquares);
+                await updateGameState(updatedSquares);
             } catch (error) {
                 console.error('Failed to update current game state:', error);
             }
         }
 
-        const newWinner = calculateWinner(nextSquares);
-        const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
+        const newWinner = calculateWinner(updatedSquares);
+        const newIsDraw = !newWinner && updatedSquares.every(square => square !== null);
 
         if (newWinner || newIsDraw) {
             setGameEnded(true);

@@ -135,7 +135,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [confettiLaunched, setConfettiLaunched] = useState(false);
     const [gameEnded, setGameEnded] = useState(false);
     const { user, updateUser } = useAuth();
-    const currentSquares = history[currentMove] || Array(9).fill(null);
+    const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
     const [botDifficulty, setBotDifficulty] = useState(null);
     const [bot, setBot] = useState(null);
     const [difficultySelected, setDifficultySelected] = useState(false);
@@ -166,16 +166,22 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 setHistory([Array(9).fill(null)]);
                 setCurrentMove(0);
                 setXIsNext(true);
+                console.log(`Match found. You are ${symbol}. ${start ? 'Your turn' : "Opponent's turn"}`);
             });
 
             socket.on('opponentMove', ({ position, player }) => {
-                const nextSquares = [...currentSquares];
-                nextSquares[position] = player;
-                handlePlay(nextSquares, false);
+                setCurrentSquares(prevSquares => {
+                    const nextSquares = [...prevSquares];
+                    nextSquares[position] = player;
+                    return nextSquares;
+                });
+                setXIsNext(prevXIsNext => !prevXIsNext);
+                console.log(`Opponent moved: ${player} at position ${position}`);
             });
 
             socket.on('turnChange', ({ isYourTurn }) => {
                 setIsMyTurn(isYourTurn);
+                console.log(`Turn changed. Is it your turn? ${isYourTurn}`);
             });
 
             return () => {
@@ -184,7 +190,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 socket.off('turnChange');
             };
         }
-    }, [isOnlineMode, currentSquares]);
+    }, [isOnlineMode]);
 
     useEffect(() => {
         setIsOnlineMode(!isOfflineMode);
@@ -309,25 +315,27 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         if (gameEnded || !gameInitialized) {
             return;
         }
-
+    
         const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
-
+    
         const newWinner = calculateWinner(nextSquares);
         const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
-
+    
         if (newWinner || newIsDraw) {
             setGameEnded(true);
             setShowOverlay(true);
             handleGameEnd(newWinner || 'draw');
         } else {
             setXIsNext(!xIsNext);
-            if (offlineGameType === 'bot') {
+            if (isOnlineMode) {
+                setIsMyTurn(false);
+            } else if (offlineGameType === 'bot') {
                 setIsBotTurn(isPlayerMove);
             }
         }
-
+    
         setIsProcessingTurn(false);
     }
 
@@ -383,15 +391,19 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setGameInitialized(false);
     }
 
+
     function handleSquareClick(i) {
         if (isOnlineMode) {
             if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares)) return;
 
-            const nextSquares = currentSquares.slice();
+            const nextSquares = [...currentSquares];
             nextSquares[i] = playerSymbol;
+            setCurrentSquares(nextSquares);
+            setXIsNext(!xIsNext);
             socket.emit('move', { gameId, position: i, player: playerSymbol });
-            handlePlay(nextSquares, true);
-        } else if (offlineGameType === 'bot') {
+            setIsMyTurn(false);  // Immediately set to false after making a move
+            console.log(`You moved: ${playerSymbol} at position ${i}`);
+            } else if (offlineGameType === 'bot') {
             if (showCoinFlip || isBotTurn || isProcessingTurn || currentSquares[i] || calculateWinner(currentSquares)) {
                 return;
             }
@@ -487,7 +499,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                     {gameId && (
                         <>
                             <p>Playing against: {opponent}</p>
-                            <p>You are: {playerSymbol}</p>
+                            <p>You are: {playerSymbol || 'Waiting for symbol...'}</p>
                             <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
                         </>
                     )}

@@ -67,18 +67,26 @@ io.on('connection', (socket) => {
 
     socket.on('move', ({ gameId, position, player }) => {
         const game = activeGames.get(gameId);
-        if (game && game.currentTurn === socket.id) {
-            const currentPlayerIndex = game.players.findIndex(p => p.id === socket.id);
+        if (game) {
+            const currentPlayerIndex = game.players.findIndex(p => p.socket.id === socket.id);
             const opponentIndex = 1 - currentPlayerIndex;
             
-            game.players[opponentIndex].socket.emit('opponentMove', { position, player });
-            
-            // Switch turns
-            game.currentTurn = game.players[opponentIndex].id;
-            
-            // Notify both players about the turn change
-            game.players[currentPlayerIndex].socket.emit('turnChange', { isYourTurn: false });
-            game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
+            if (game.currentTurn === game.players[currentPlayerIndex].id) {
+                game.players[opponentIndex].socket.emit('opponentMove', { position, player });
+                
+                // Switch turns
+                game.currentTurn = game.players[opponentIndex].id;
+                
+                // Notify both players about the turn change
+                game.players[currentPlayerIndex].socket.emit('turnChange', { isYourTurn: false });
+                game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
+                
+                console.log(`Move made by ${player} at position ${position} in game ${gameId}`);
+            } else {
+                console.log(`Invalid move attempt by ${socket.id} in game ${gameId}`);
+            }
+        } else {
+            console.log(`Game ${gameId} not found`);
         }
     });
 

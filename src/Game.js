@@ -168,9 +168,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [gameInitialized, gameEnded]);
 
     useEffect(() => {
-        // Check if it's the bot's turn
-        const isBotMove = (botSymbol === 'X' && xIsNext) || (botSymbol === 'O' && !xIsNext);
-        if (isOfflineMode && offlineGameType === 'bot' && isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
+        const isBotMode = isOfflineMode && offlineGameType === 'bot';
+        const isBotMove = isBotMode && ((botSymbol === 'X' && xIsNext) || (botSymbol === 'O' && !xIsNext));
+        
+        if (isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
             setIsBotTurn(true);
             setIsProcessingTurn(true);
             const timer = setTimeout(() => {
@@ -184,6 +185,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
 
     function coinFlip() {
+        if(isOfflineMode && offlineGameType === 'bot'){
         if (showCoinFlip) return; // This check might be redundant, keeping it for safety
         setTimeout(() => {
             const result = Math.random() < 0.5;
@@ -197,6 +199,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             setIsProcessingTurn(false);
         }, 1000);
     }
+    else {
+        // For non-bot modes, just initialize the game without coin flip
+        setXIsNext(true);
+        setGameInitialized(true);
+        setIsProcessingTurn(false);
+    }
+}
 
        useEffect(() => {
         if (isOfflineMode && offlineGameType === 'bot' && bot) {
@@ -237,7 +246,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }
 
     async function handlePlay(nextSquares) {
-        if (gameEnded || showCoinFlip || !gameInitialized) {
+        if (gameEnded || (showCoinFlip && isOfflineMode && offlineGameType === 'bot') || !gameInitialized) {
             setIsProcessingTurn(false);
             return;
         }
@@ -347,6 +356,12 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             });
         }
 
+        if(isOfflineMode && offlineGameType === 'bot'){
+        setShowCoinFlip(true);
+        }
+        else{
+            setShowCoinFlip(false);
+        }
         // Trigger coin flip immediately
         coinFlip();
     }
@@ -399,13 +414,15 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 {isOfflineMode && offlineGameType === 'bot' && (
                         <button onClick={resetDifficultySelection}>Change Difficulty</button>
                     )}
-                {showCoinFlip ? (
+                    {isOfflineMode && offlineGameType === 'bot' ? (
+                showCoinFlip ? (
                     <div>Flipping coin...</div>
                 ) : (
                     <div>
                         {playerStarts ? `You start as ${playerSymbol}` : `Bot starts as ${botSymbol}`}
                     </div>
-                )}
+                )
+            ) : null}
             </div>
             <div className="game">
                 <div className="game-board">

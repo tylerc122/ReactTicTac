@@ -1,7 +1,13 @@
 class Bot {
     constructor() {
-        this.player = 'O';
+        // These are just default vals, will be set dynamically
+        this.player = 'O'; 
         this.opponent = 'X';
+    }
+
+    setSymbol(symbol) {
+        this.symbol = symbol;
+        this.opponentSymbol = symbol === 'X' ? 'O' : 'X';
     }
 
     makeMove(board) {

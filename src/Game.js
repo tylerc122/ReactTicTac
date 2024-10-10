@@ -39,12 +39,11 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     const [confettiLaunched, setConfettiLaunched] = React.useState(false);
 
     function handleClick(i) {
-        if (isBotTurn || isProcessingTurn || showCoinFlip || squares[i] || calculateWinner(squares)) {
+        if (showCoinFlip || isBotTurn || isProcessingTurn || squares[i] || calculateWinner(squares)) {
             return;
         }
-
         const nextSquares = squares.slice();
-
+        
         if (xIsNext) {
             nextSquares[i] = 'X';
         } else {
@@ -143,6 +142,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [gameInitialized, setGameInitialized] = useState(false);
     const [isBotTurn, setIsBotTurn] = useState(false);
     const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+    const [playerSymbol, setPlayerSymbol] = useState('X');
+    const [botSymbol, setBotSymbol] = useState('O');
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -167,37 +168,50 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }, [gameInitialized, gameEnded]);
 
     useEffect(() => {
-        // Checks if offline, playing against bot, x isn't next, meaning its the bots turn, there's no winner, and some squares are open.
-        if (isOfflineMode && offlineGameType === 'bot' && !xIsNext && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)){
-            // Wait a second before playing a move thru setTimeout
+        const isBotMode = isOfflineMode && offlineGameType === 'bot';
+        const isBotMove = isBotMode && ((botSymbol === 'X' && xIsNext) || (botSymbol === 'O' && !xIsNext));
+        
+        if (isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
             setIsBotTurn(true);
             setIsProcessingTurn(true);
             const timer = setTimeout(() => {
-                // Make the move thru Bot.js and then handlePlay in this file with the given move.
                 const botMove = bot.makeMove(currentSquares);
                 handlePlay(botMove);
                 setIsBotTurn(false);
                 setIsProcessingTurn(false);
-                // 500 ms delay
             }, 500);
             return () => clearTimeout(timer);
         }
-        // Re-renders on given components.
-    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot]);
+    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
 
-
-function coinFlip() {
-    if(showCoinFlip || gameInitialized) return;
-    setShowCoinFlip(true);
-    setTimeout(() => {
-        const result = Math.random() < 0.5;
-        setPlayerStarts(result);
-        setXIsNext(result);
-        setIsBotTurn(!result);
-        setShowCoinFlip(false);
+    function coinFlip() {
+        if(isOfflineMode && offlineGameType === 'bot'){
+        if (showCoinFlip) return; // This check might be redundant, keeping it for safety
+        setTimeout(() => {
+            const result = Math.random() < 0.5;
+            setPlayerStarts(result);
+            setXIsNext(true); // X always starts
+            setPlayerSymbol(result ? 'X' : 'O');
+            setBotSymbol(result ? 'O' : 'X');
+            setIsBotTurn(!result);
+            setShowCoinFlip(false);
+            setGameInitialized(true);
+            setIsProcessingTurn(false);
+        }, 1000);
+    }
+    else {
+        // For non-bot modes, just initialize the game without coin flip
+        setXIsNext(true);
         setGameInitialized(true);
-    }, 1000);
+        setIsProcessingTurn(false);
+    }
 }
+
+       useEffect(() => {
+        if (isOfflineMode && offlineGameType === 'bot' && bot) {
+            bot.setSymbol(botSymbol);
+        }
+    }, [botSymbol, isOfflineMode, offlineGameType, bot]);
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
@@ -233,35 +247,44 @@ function coinFlip() {
     }
 
     async function handlePlay(nextSquares) {
-
-        if (gameEnded) {
+        if (gameEnded || (showCoinFlip && isOfflineMode && offlineGameType === 'bot') || !gameInitialized) {
             setIsProcessingTurn(false);
             return;
         }
 
-        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+        const currentPlayerSymbol = xIsNext ? 'X' : 'O';
+        const updatedSquares = nextSquares.map((square, index) => {
+            if (square !== currentSquares[index]) {
+                return currentPlayerSymbol;
+            }
+            return square;
+        });
+
+        const nextHistory = [...history.slice(0, currentMove + 1), updatedSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
-        setXIsNext(!xIsNext);
+
+        const newWinner = calculateWinner(updatedSquares);
+        const newIsDraw = !newWinner && updatedSquares.every(square => square !== null);
+
+        if (newWinner || newIsDraw) {
+            setGameEnded(true);
+            setShowOverlay(true);  // Ensure overlay is shown immediately
+            handleGameEnd(newWinner || 'draw');
+        } else {
+            setXIsNext(!xIsNext);
+        }
 
         if (!isOfflineMode) {
             try {
-                await updateGameState(nextSquares);
+                await updateGameState(updatedSquares);
             } catch (error) {
                 console.error('Failed to update current game state:', error);
             }
         }
 
-        const newWinner = calculateWinner(nextSquares);
-        const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
-
-        if (newWinner || newIsDraw) {
-            setGameEnded(true);
-            handleGameEnd(newWinner || 'draw');
-        }
         setIsProcessingTurn(false);
     }
-
     const winner = calculateWinner(currentSquares);
     const isDraw = !winner && currentSquares.every(square => square !== null);
 
@@ -310,28 +333,38 @@ function coinFlip() {
             }
         }
 
-        setTimeout(() => {
-            setGameInitialized(false);
-        }, 2000);
+        // Remove the timeout here to keep the game in the end state until the player chooses to reset
+        setGameInitialized(false);
     }
 
-    async function resetGame() {
-        if(showCoinFlip || (!gameEnded && gameInitialized)) return;
+ 
+    function resetGame() {
+        if (showCoinFlip) return; // Prevents multiple resets
+
+        setShowCoinFlip(true);
+        setIsProcessingTurn(true);
+        setGameInitialized(false);
+        setGameEnded(false);
+        setShowOverlay(false);
 
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
-        setShowOverlay(true);
         setConfettiLaunched(false);
-        setGameEnded(false);
-        coinFlip();
 
         if (!isOfflineMode) {
-            try {
-                await updateGameState(Array(9).fill(null));
-            } catch (error) {
+            updateGameState(Array(9).fill(null)).catch(error => {
                 console.error('Failed to reset game state', error);
-            }
+            });
         }
+
+        if(isOfflineMode && offlineGameType === 'bot'){
+        setShowCoinFlip(true);
+        }
+        else{
+            setShowCoinFlip(false);
+        }
+        // Trigger coin flip immediately
+        coinFlip();
     }
 
     useEffect(() => {
@@ -382,11 +415,15 @@ function coinFlip() {
                 {isOfflineMode && offlineGameType === 'bot' && (
                         <button onClick={resetDifficultySelection}>Change Difficulty</button>
                     )}
-                    {showCoinFlip ? (
-                            <div>Flipping coin...</div>
-                        ) : (
-                    <div>{playerStarts ? "You start" : "Bot starts"}</div>
-                        )}
+                    {isOfflineMode && offlineGameType === 'bot' ? (
+                showCoinFlip ? (
+                    <div>Flipping coin...</div>
+                ) : (
+                    <div>
+                        {playerStarts ? `You start as ${playerSymbol}` : `Bot starts as ${botSymbol}`}
+                    </div>
+                )
+            ) : null}
             </div>
             <div className="game">
                 <div className="game-board">

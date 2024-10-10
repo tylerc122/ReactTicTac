@@ -3,10 +3,10 @@ import Bot from './Bot.js';
 // Not possible to win against this guy (in theory I haven't tested it)
 export class ImpossibleBot extends Bot {
   // ACQUIRED THIS ALGORITHM FROM CHATGPT
-    makeMove(board) {
-        const bestMove = this.minimax(board, this.player);
-        return this.playMove(board, bestMove.index);
-    }
+  makeMove(board) {
+    const bestMove = this.minimax(board, this.symbol);
+    return this.playMove(board, bestMove.index);
+}
 
     minimax(board, player) {
         const availableSpots = this.getEmptyIndexes(board);

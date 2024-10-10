@@ -10,14 +10,17 @@ function SocketTest() {
     useEffect(() => {
         socket.on('connect', () => {
             setIsConnected(true);
+            console.log('Connected to server');
         });
 
         socket.on('disconnect', () => {
             setIsConnected(false);
+            console.log('Disconnected from server');
         });
 
         socket.on('testResponse', (data) => {
             setLastMessage(data);
+            console.log('Received test response:', data);
         });
 
         return () => {
@@ -28,6 +31,7 @@ function SocketTest() {
     }, []);
 
     const sendTestEvent = () => {
+        console.log('Sending test event');
         socket.emit('test', 'Hello from client!');
     };
 

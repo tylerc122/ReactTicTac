@@ -26,6 +26,11 @@ let activeGames = new Map();
 io.on('connection', (socket) => {
     console.log('New client connected', socket.id);
 
+    socket.on('test', (message) => {
+        console.log('Received test message:', message);
+        socket.emit('testResponse', 'Server received: ' + message);
+    });
+
     socket.on('findMatch', (userId) => {
         console.log(`User ${userId} is looking for a match`);
         waitingPlayers.delete(userId);
@@ -34,10 +39,16 @@ io.on('connection', (socket) => {
             if (waitingUserId !== userId) {
                 // Match found
                 const gameId = Math.random().toString(36).substr(2, 9);
-                waitingSocket.emit('matchFound', { gameId, opponent: userId, start: true });
-                socket.emit('matchFound', { gameId, opponent: waitingUserId, start: false });
+                waitingSocket.emit('matchFound', { gameId, opponent: userId, start: true, symbol: 'X' });
+                socket.emit('matchFound', { gameId, opponent: waitingUserId, start: false, symbol: 'O' });
                 waitingPlayers.delete(waitingUserId);
-                activeGames.set(gameId, { players: [waitingUserId, userId] });
+                activeGames.set(gameId, { 
+                    players: [
+                        { id: waitingUserId, socket: waitingSocket, symbol: 'X' },
+                        { id: userId, socket: socket, symbol: 'O' }
+                    ],
+                    currentTurn: waitingUserId
+                });
                 console.log(`Match found: ${waitingUserId} vs ${userId}, Game ID: ${gameId}`);
                 return;
             }
@@ -55,15 +66,26 @@ io.on('connection', (socket) => {
     });
 
     socket.on('move', ({ gameId, position, player }) => {
-        socket.to(gameId).emit('opponentMove', { position, player });
+        const game = activeGames.get(gameId);
+        if (game && game.currentTurn === socket.id) {
+            const currentPlayerIndex = game.players.findIndex(p => p.id === socket.id);
+            const opponentIndex = 1 - currentPlayerIndex;
+            
+            game.players[opponentIndex].socket.emit('opponentMove', { position, player });
+            
+            // Switch turns
+            game.currentTurn = game.players[opponentIndex].id;
+            
+            // Notify both players about the turn change
+            game.players[currentPlayerIndex].socket.emit('turnChange', { isYourTurn: false });
+            game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
+        }
     });
 
     socket.on('disconnect', () => {
-        if (waitingPlayer === socket.id) {
-            waitingPlayer = null;
-        }
         console.log('Client disconnected');
     });
+    
 });
 
 app.use(cors(corsOptions));

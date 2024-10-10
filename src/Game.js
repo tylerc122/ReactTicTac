@@ -5,6 +5,9 @@ import confetti from 'canvas-confetti';
 import { getGameState, updateGameState, updateStats } from './api';
 import { useAuth } from './AuthContext';
 import { MakeBot } from './bots/MakeBot';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:5001');
 
 function calculateWinner(squares) {
     if (!Array.isArray(squares)) {
@@ -142,8 +145,50 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [gameInitialized, setGameInitialized] = useState(false);
     const [isBotTurn, setIsBotTurn] = useState(false);
     const [isProcessingTurn, setIsProcessingTurn] = useState(false);
-    const [playerSymbol, setPlayerSymbol] = useState('X');
     const [botSymbol, setBotSymbol] = useState('O');
+    const [isOnlineMode, setIsOnlineMode] = useState(!isOfflineMode);
+    const [gameId, setGameId] = useState(null);
+    const [opponent, setOpponent] = useState(null);
+    const [isWaiting, setIsWaiting] = useState(false);
+    const [playerSymbol, setPlayerSymbol] = useState(null);
+    const [isMyTurn, setIsMyTurn] = useState(false);
+
+
+    useEffect(() => {
+        if (isOnlineMode) {
+            socket.on('matchFound', ({ gameId, opponent, start, symbol }) => {
+                setGameId(gameId);
+                setOpponent(opponent);
+                setIsWaiting(false);
+                setPlayerSymbol(symbol);
+                setIsMyTurn(start);
+                setGameInitialized(true);
+                setHistory([Array(9).fill(null)]);
+                setCurrentMove(0);
+                setXIsNext(true);
+            });
+
+            socket.on('opponentMove', ({ position, player }) => {
+                const nextSquares = [...currentSquares];
+                nextSquares[position] = player;
+                handlePlay(nextSquares, false);
+            });
+
+            socket.on('turnChange', ({ isYourTurn }) => {
+                setIsMyTurn(isYourTurn);
+            });
+
+            return () => {
+                socket.off('matchFound');
+                socket.off('opponentMove');
+                socket.off('turnChange');
+            };
+        }
+    }, [isOnlineMode, currentSquares]);
+
+    useEffect(() => {
+        setIsOnlineMode(!isOfflineMode);
+    }, [isOfflineMode]);
 
     useEffect(() => {
         if (!isOfflineMode) {
@@ -169,43 +214,57 @@ export default function Game({ isOfflineMode, offlineGameType }) {
 
     useEffect(() => {
         const isBotMode = isOfflineMode && offlineGameType === 'bot';
-        const isBotMove = isBotMode && ((botSymbol === 'X' && xIsNext) || (botSymbol === 'O' && !xIsNext));
+        const isBotMove = isBotMode && isBotTurn;
         
         if (isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
-            setIsBotTurn(true);
             setIsProcessingTurn(true);
             const timer = setTimeout(() => {
                 const botMove = bot.makeMove(currentSquares);
-                handlePlay(botMove);
-                setIsBotTurn(false);
-                setIsProcessingTurn(false);
+                const nextSquares = currentSquares.slice();
+                const moveIndex = botMove.findIndex((square, index) => square !== currentSquares[index]);
+                if (moveIndex !== -1) {
+                    nextSquares[moveIndex] = botSymbol;
+                    handlePlay(nextSquares, false);
+                } else {
+                    console.error("Bot did not make a valid move");
+                }
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [currentSquares, xIsNext, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
+    }, [currentSquares, isBotTurn, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
+
+    function handleFindMatch() {
+        if (user) {
+            socket.emit('findMatch', user.id);
+            setIsWaiting(true);
+        }
+    }
+
+    function handleCancelMatch() {
+        socket.emit('cancelMatch', user.id);
+        setIsWaiting(false);
+    }
 
     function coinFlip() {
-        if(isOfflineMode && offlineGameType === 'bot'){
-        if (showCoinFlip) return; // This check might be redundant, keeping it for safety
-        setTimeout(() => {
-            const result = Math.random() < 0.5;
-            setPlayerStarts(result);
-            setXIsNext(true); // X always starts
-            setPlayerSymbol(result ? 'X' : 'O');
-            setBotSymbol(result ? 'O' : 'X');
-            setIsBotTurn(!result);
-            setShowCoinFlip(false);
+        if (isOfflineMode && offlineGameType === 'bot') {
+            if (showCoinFlip) return;
+            setTimeout(() => {
+                const result = Math.random() < 0.5;
+                setPlayerStarts(result);
+                setXIsNext(true); // X always starts
+                setPlayerSymbol(result ? 'X' : 'O');
+                setBotSymbol(result ? 'O' : 'X');
+                setIsBotTurn(!result);
+                setShowCoinFlip(false);
+                setGameInitialized(true);
+                setIsProcessingTurn(false);
+            }, 1000);
+        } else {
+            setXIsNext(true);
             setGameInitialized(true);
             setIsProcessingTurn(false);
-        }, 1000);
+        }
     }
-    else {
-        // For non-bot modes, just initialize the game without coin flip
-        setXIsNext(true);
-        setGameInitialized(true);
-        setIsProcessingTurn(false);
-    }
-}
 
        useEffect(() => {
         if (isOfflineMode && offlineGameType === 'bot' && bot) {
@@ -246,45 +305,32 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
     }
 
-    async function handlePlay(nextSquares) {
-        if (gameEnded || (showCoinFlip && isOfflineMode && offlineGameType === 'bot') || !gameInitialized) {
-            setIsProcessingTurn(false);
+    async function handlePlay(nextSquares, isPlayerMove = true) {
+        if (gameEnded || !gameInitialized) {
             return;
         }
 
-        const currentPlayerSymbol = xIsNext ? 'X' : 'O';
-        const updatedSquares = nextSquares.map((square, index) => {
-            if (square !== currentSquares[index]) {
-                return currentPlayerSymbol;
-            }
-            return square;
-        });
-
-        const nextHistory = [...history.slice(0, currentMove + 1), updatedSquares];
+        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
 
-        const newWinner = calculateWinner(updatedSquares);
-        const newIsDraw = !newWinner && updatedSquares.every(square => square !== null);
+        const newWinner = calculateWinner(nextSquares);
+        const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
 
         if (newWinner || newIsDraw) {
             setGameEnded(true);
-            setShowOverlay(true);  // Ensure overlay is shown immediately
+            setShowOverlay(true);
             handleGameEnd(newWinner || 'draw');
         } else {
             setXIsNext(!xIsNext);
-        }
-
-        if (!isOfflineMode) {
-            try {
-                await updateGameState(updatedSquares);
-            } catch (error) {
-                console.error('Failed to update current game state:', error);
+            if (offlineGameType === 'bot') {
+                setIsBotTurn(isPlayerMove);
             }
         }
 
         setIsProcessingTurn(false);
     }
+
     const winner = calculateWinner(currentSquares);
     const isDraw = !winner && currentSquares.every(square => square !== null);
 
@@ -337,6 +383,29 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setGameInitialized(false);
     }
 
+    function handleSquareClick(i) {
+        if (isOnlineMode) {
+            if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares)) return;
+
+            const nextSquares = currentSquares.slice();
+            nextSquares[i] = playerSymbol;
+            socket.emit('move', { gameId, position: i, player: playerSymbol });
+            handlePlay(nextSquares, true);
+        } else if (offlineGameType === 'bot') {
+            if (showCoinFlip || isBotTurn || isProcessingTurn || currentSquares[i] || calculateWinner(currentSquares)) {
+                return;
+            }
+            const nextSquares = currentSquares.slice();
+            nextSquares[i] = playerSymbol;
+            handlePlay(nextSquares, true);
+        } else {
+            // Local 2-player mode
+            if (currentSquares[i] || calculateWinner(currentSquares)) return;
+            const nextSquares = currentSquares.slice();
+            nextSquares[i] = xIsNext ? 'X' : 'O';
+            handlePlay(nextSquares);
+        }
+    }
  
     function resetGame() {
         if (showCoinFlip) return; // Prevents multiple resets
@@ -396,56 +465,105 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         );
     });
 
+    
     return (
         <div className="game-container">
-                    {isOfflineMode && offlineGameType === 'bot' && !difficultySelected ? (
-                <div className="bot-difficulty-selection">
-                    <h2>Select Bot Difficulty</h2>
-                    <button onClick={() => handleBotDifficulty('easy')}>Easy</button>
-                    <button onClick={() => handleBotDifficulty('medium')}>Medium</button>
-                    <button onClick={() => handleBotDifficulty('hard')}>Hard</button>
-                    <button onClick={() => handleBotDifficulty('impossible')}>Impossible</button>
-                </div>
-            ) : (
-            <>
-            <div className={`scoreboard ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
-                <div>X Score: {xScore}</div>
-                <div>O Score: {oScore}</div>
-                <div>Draws: {draws}</div>
-                {isOfflineMode && offlineGameType === 'bot' && (
-                        <button onClick={resetDifficultySelection}>Change Difficulty</button>
-                    )}
-                    {isOfflineMode && offlineGameType === 'bot' ? (
-                showCoinFlip ? (
-                    <div>Flipping coin...</div>
-                ) : (
-                    <div>
-                        {playerStarts ? `You start as ${playerSymbol}` : `Bot starts as ${botSymbol}`}
+            {isOnlineMode ? (
+                <>
+                    <div className="scoreboard">
+                        <div>X Score: {xScore}</div>
+                        <div>O Score: {oScore}</div>
+                        <div>Draws: {draws}</div>
                     </div>
-                )
-            ) : null}
-            </div>
-            <div className="game">
-                <div className="game-board">
-                    <Board
-                        xIsNext={xIsNext}
-                        squares={currentSquares}
-                        onPlay={handlePlay}
-                        onReset={resetGame}
-                        showOverlay={showOverlay}
-                        toggleOverlay={toggleOverlay}
-                        returnToWinScreen={returnToWinScreen}
-                        confettiLaunched={confettiLaunched}
-                        setConfettiLaunched={setConfettiLaunched}
-                        gameEnded={gameEnded} 
-                        isBotTurn={isBotTurn || isProcessingTurn}
-                        />
-                </div>
-                <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
-                    <ol>{moves}</ol>
-                </div>
-            </div>
-        </>
-    )}
-</div>
-)};
+                    {!gameId && !isWaiting && (
+                        <button onClick={handleFindMatch}>Find Online Match</button>
+                    )}
+                    {isWaiting && (
+                        <>
+                            <p>Waiting for an opponent...</p>
+                            <button onClick={handleCancelMatch}>Cancel</button>
+                        </>
+                    )}
+                    {gameId && (
+                        <>
+                            <p>Playing against: {opponent}</p>
+                            <p>You are: {playerSymbol}</p>
+                            <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
+                        </>
+                    )}
+                    <div className="game">
+                        <div className="game-board">
+                            <Board
+                                xIsNext={xIsNext}
+                                squares={currentSquares}
+                                onPlay={handleSquareClick}
+                                onReset={resetGame}
+                                showOverlay={showOverlay}
+                                toggleOverlay={toggleOverlay}
+                                returnToWinScreen={returnToWinScreen}
+                                confettiLaunched={confettiLaunched}
+                                setConfettiLaunched={setConfettiLaunched}
+                                gameEnded={gameEnded}
+                                isBotTurn={false}
+                                isProcessingTurn={!isMyTurn || !gameId}
+                                showCoinFlip={false}
+                            />
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <>
+                    {isOfflineMode && offlineGameType === 'bot' && !difficultySelected ? (
+                        <div className="bot-difficulty-selection">
+                            <h2>Select Bot Difficulty</h2>
+                            <button onClick={() => handleBotDifficulty('easy')}>Easy</button>
+                            <button onClick={() => handleBotDifficulty('medium')}>Medium</button>
+                            <button onClick={() => handleBotDifficulty('hard')}>Hard</button>
+                            <button onClick={() => handleBotDifficulty('impossible')}>Impossible</button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className={`scoreboard ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
+                                <div>X Score: {xScore}</div>
+                                <div>O Score: {oScore}</div>
+                                <div>Draws: {draws}</div>
+                                {isOfflineMode && offlineGameType === 'bot' && (
+                                    <button onClick={resetDifficultySelection}>Change Difficulty</button>
+                                )}
+                                {isOfflineMode && offlineGameType === 'bot' ? (
+                                    showCoinFlip ? (
+                                        <div>Flipping coin...</div>
+                                    ) : (
+                                        <div>
+                                            {playerStarts ? `You start as ${playerSymbol}` : `Bot starts as ${botSymbol}`}
+                                        </div>
+                                    )
+                                ) : null}
+                            </div>
+                            <div className="game">
+                                <div className="game-board">
+                                    <Board
+                                        xIsNext={xIsNext}
+                                        squares={currentSquares}
+                                        onPlay={handlePlay}
+                                        onReset={resetGame}
+                                        showOverlay={showOverlay}
+                                        toggleOverlay={toggleOverlay}
+                                        returnToWinScreen={returnToWinScreen}
+                                        confettiLaunched={confettiLaunched}
+                                        setConfettiLaunched={setConfettiLaunched}
+                                        gameEnded={gameEnded} 
+                                        isBotTurn={isBotTurn || isProcessingTurn}
+                                    />
+                                </div>
+                                <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
+                                    <ol>{moves}</ol>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}

@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
         for (let [waitingUserId, waitingSocket] of waitingPlayers) {
             if (waitingUserId !== userId) {
                 // Match found
-                const gameId = Math.random().toString(36).substr(2, 9);
+                const gameId = Math.random().toString(36).substring(2, 9);
                 waitingSocket.emit('matchFound', { gameId, opponent: userId, start: true, symbol: 'X' });
                 socket.emit('matchFound', { gameId, opponent: waitingUserId, start: false, symbol: 'O' });
                 waitingPlayers.delete(waitingUserId);
@@ -47,7 +47,8 @@ io.on('connection', (socket) => {
                         { id: waitingUserId, socket: waitingSocket, symbol: 'X' },
                         { id: userId, socket: socket, symbol: 'O' }
                     ],
-                    currentTurn: waitingUserId
+                    currentTurn: waitingUserId,
+                    board: Array(9).fill(null)
                 });
                 console.log(`Match found: ${waitingUserId} vs ${userId}, Game ID: ${gameId}`);
                 return;
@@ -68,11 +69,12 @@ io.on('connection', (socket) => {
     socket.on('move', ({ gameId, position, player }) => {
         const game = activeGames.get(gameId);
         if (game) {
-            const currentPlayerIndex = game.players.findIndex(p => p.socket.id === socket.id);
+            const currentPlayerIndex = game.players.findIndex(p => p.id === player);
             const opponentIndex = 1 - currentPlayerIndex;
             
             if (game.currentTurn === game.players[currentPlayerIndex].id) {
-                game.players[opponentIndex].socket.emit('opponentMove', { position, player });
+                game.board[position] = game.players[currentPlayerIndex].symbol;
+                game.players[opponentIndex].socket.emit('opponentMove', { position, player: game.players[currentPlayerIndex].symbol });
                 
                 // Switch turns
                 game.currentTurn = game.players[opponentIndex].id;
@@ -82,8 +84,9 @@ io.on('connection', (socket) => {
                 game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
                 
                 console.log(`Move made by ${player} at position ${position} in game ${gameId}`);
+                console.log(`Current board state: ${game.board}`);
             } else {
-                console.log(`Invalid move attempt by ${socket.id} in game ${gameId}`);
+                console.log(`Invalid move attempt by ${player} in game ${gameId}`);
             }
         } else {
             console.log(`Game ${gameId} not found`);
@@ -92,8 +95,26 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
+        // Remove from waiting players if disconnected while waiting
+        for (let [userId, waitingSocket] of waitingPlayers) {
+            if (waitingSocket.id === socket.id) {
+                waitingPlayers.delete(userId);
+                console.log(`Removed disconnected user ${userId} from waiting list`);
+                break;
+            }
+        }
+        // Handle disconnection in active games
+        for (let [gameId, game] of activeGames) {
+            const disconnectedPlayerIndex = game.players.findIndex(p => p.socket.id === socket.id);
+            if (disconnectedPlayerIndex !== -1) {
+                const opponentIndex = 1 - disconnectedPlayerIndex;
+                game.players[opponentIndex].socket.emit('opponentDisconnected');
+                activeGames.delete(gameId);
+                console.log(`Game ${gameId} ended due to player disconnection`);
+                break;
+            }
+        }
     });
-    
 });
 
 app.use(cors(corsOptions));
@@ -105,14 +126,6 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
-io.on('connection', (socket) => {
-    console.log('New client connected');
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});
-
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
@@ -120,7 +133,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5001;
 
-// Check if the port is in use before trying to listen
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use. Please choose a different port or close the application using this port.`);
@@ -133,7 +145,5 @@ server.on('error', (error) => {
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    // Clear waiting players on server start
-    waitingPlayer = null;
     console.log('Cleared waiting players');
 });

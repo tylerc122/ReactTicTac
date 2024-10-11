@@ -11,7 +11,7 @@ const socket = io('http://localhost:5001');
 
 function calculateWinner(squares) {
     if (!Array.isArray(squares)) {
-        console.error('Invalid', squares);
+        console.error('Invalid squares:', squares);
         return null;
     }
     const lines = [
@@ -45,14 +45,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
         if (showCoinFlip || isBotTurn || isProcessingTurn || squares[i] || calculateWinner(squares)) {
             return;
         }
-        const nextSquares = squares.slice();
-        
-        if (xIsNext) {
-            nextSquares[i] = 'X';
-        } else {
-            nextSquares[i] = 'O';
-        }
-        onPlay(nextSquares);
+        onPlay(i);
     }
 
     const winner = calculateWinner(squares);
@@ -153,7 +146,6 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [playerSymbol, setPlayerSymbol] = useState(null);
     const [isMyTurn, setIsMyTurn] = useState(false);
 
-
     useEffect(() => {
         if (isOnlineMode) {
             socket.on('matchFound', ({ gameId, opponent, start, symbol }) => {
@@ -165,7 +157,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 setGameInitialized(true);
                 setHistory([Array(9).fill(null)]);
                 setCurrentMove(0);
-                setXIsNext(true);
+                setXIsNext(true); 
+                setCurrentSquares(Array(9).fill(null));
                 console.log(`Match found. You are ${symbol}. ${start ? 'Your turn' : "Opponent's turn"}`);
             });
 
@@ -184,10 +177,19 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 console.log(`Turn changed. Is it your turn? ${isYourTurn}`);
             });
 
+            socket.on('opponentDisconnected', () => {
+                console.log('Opponent disconnected');
+                // Handle opponent disconnection (e.g., end game, show message)
+                setGameEnded(true);
+                setShowOverlay(true);
+                // Should probably display a diff message for a disconnection
+            });
+
             return () => {
                 socket.off('matchFound');
                 socket.off('opponentMove');
                 socket.off('turnChange');
+                socket.off('opponentDisconnected');
             };
         }
     }, [isOnlineMode]);
@@ -272,7 +274,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
     }
 
-       useEffect(() => {
+    useEffect(() => {
         if (isOfflineMode && offlineGameType === 'bot' && bot) {
             bot.setSymbol(botSymbol);
         }
@@ -301,6 +303,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 // Based on where we are in the game, assign these vars.
                 setXIsNext((gameState.filter(square => square !== null).length) % 2 === 0);
                 setGameEnded(calculateWinner(gameState) !== null || gameState.every(square => square !== null));
+                setCurrentSquares(gameState);
             } else {
                 console.error('Invalid game state:', gameState);
                 resetGame();
@@ -319,6 +322,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
+        setCurrentSquares(nextSquares);
     
         const newWinner = calculateWinner(nextSquares);
         const newIsDraw = !newWinner && nextSquares.every(square => square !== null);
@@ -339,19 +343,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setIsProcessingTurn(false);
     }
 
-    const winner = calculateWinner(currentSquares);
-    const isDraw = !winner && currentSquares.every(square => square !== null);
-
     useEffect(() => {
-        if (winner) {
-            launchConfetti();
-        }
-    }, [winner]);
-
-    const gameOver = winner || isDraw;
+        console.log('Current squares:', currentSquares);
+    }, [currentSquares]);
 
     function jumpTo(nextMove) {
         setCurrentMove(nextMove);
+        setCurrentSquares(history[nextMove]);
+        setXIsNext(nextMove % 2 === 0);
     }
 
     async function handleGameEnd(result) {
@@ -391,7 +390,6 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setGameInitialized(false);
     }
 
-
     function handleSquareClick(i) {
         if (isOnlineMode) {
             if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares)) return;
@@ -400,18 +398,19 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             nextSquares[i] = playerSymbol;
             setCurrentSquares(nextSquares);
             setXIsNext(!xIsNext);
-            socket.emit('move', { gameId, position: i, player: playerSymbol });
-            setIsMyTurn(false);  // Immediately set to false after making a move
+            socket.emit('move', { gameId, position: i, player: user.id });
+            setIsMyTurn(false); // Immediately set to false after making a move
             console.log(`You moved: ${playerSymbol} at position ${i}`);
-            } else if (offlineGameType === 'bot') {
+            // Bot mode
+        } else if (offlineGameType === 'bot') {
             if (showCoinFlip || isBotTurn || isProcessingTurn || currentSquares[i] || calculateWinner(currentSquares)) {
                 return;
             }
             const nextSquares = currentSquares.slice();
             nextSquares[i] = playerSymbol;
             handlePlay(nextSquares, true);
+            // Couch play
         } else {
-            // Local 2-player mode
             if (currentSquares[i] || calculateWinner(currentSquares)) return;
             const nextSquares = currentSquares.slice();
             nextSquares[i] = xIsNext ? 'X' : 'O';
@@ -431,6 +430,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
         setConfettiLaunched(false);
+        setCurrentSquares(Array(9).fill(null));
 
         if (!isOfflineMode) {
             updateGameState(Array(9).fill(null)).catch(error => {
@@ -439,9 +439,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         }
 
         if(isOfflineMode && offlineGameType === 'bot'){
-        setShowCoinFlip(true);
-        }
-        else{
+            setShowCoinFlip(true);
+        } else {
             setShowCoinFlip(false);
         }
         // Trigger coin flip immediately
@@ -477,7 +476,6 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         );
     });
 
-    
     return (
         <div className="game-container">
             {isOnlineMode ? (
@@ -557,7 +555,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                                     <Board
                                         xIsNext={xIsNext}
                                         squares={currentSquares}
-                                        onPlay={handlePlay}
+                                        onPlay={handleSquareClick}
                                         onReset={resetGame}
                                         showOverlay={showOverlay}
                                         toggleOverlay={toggleOverlay}
@@ -566,6 +564,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                                         setConfettiLaunched={setConfettiLaunched}
                                         gameEnded={gameEnded} 
                                         isBotTurn={isBotTurn || isProcessingTurn}
+                                        showCoinFlip={showCoinFlip}
                                     />
                                 </div>
                                 <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>

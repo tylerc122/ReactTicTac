@@ -165,7 +165,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             socket.on('opponentMove', ({ position, player }) => {
                 setCurrentSquares(prevSquares => {
                     const nextSquares = [...prevSquares];
-                    nextSquares[position] = player;
+                    nextSquares[position] = player === 'X' ? 'X' : 'O';
                     return nextSquares;
                 });
                 setXIsNext(prevXIsNext => !prevXIsNext);

@@ -66,32 +66,33 @@ io.on('connection', (socket) => {
         waitingPlayers.delete(userId);
     });
 
-    socket.on('move', ({ gameId, position, player }) => {
-        const game = activeGames.get(gameId);
-        if (game) {
-            const currentPlayerIndex = game.players.findIndex(p => p.id === player);
-            const opponentIndex = 1 - currentPlayerIndex;
+socket.on('move', ({ gameId, position, player }) => {
+    const game = activeGames.get(gameId);
+    if (game) {
+        const currentPlayerIndex = game.players.findIndex(p => p.id === player);
+        const opponentIndex = 1 - currentPlayerIndex;
+        
+        if (game.currentTurn === game.players[currentPlayerIndex].id) {
+            const symbol = game.players[currentPlayerIndex].symbol;
+            game.board[position] = symbol;
+            game.players[opponentIndex].socket.emit('opponentMove', { position, player: symbol });
             
-            if (game.currentTurn === game.players[currentPlayerIndex].id) {
-                game.board[position] = game.players[currentPlayerIndex].symbol;
-                game.players[opponentIndex].socket.emit('opponentMove', { position, player: game.players[currentPlayerIndex].symbol });
-                
-                // Switch turns
-                game.currentTurn = game.players[opponentIndex].id;
-                
-                // Notify both players about the turn change
-                game.players[currentPlayerIndex].socket.emit('turnChange', { isYourTurn: false });
-                game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
-                
-                console.log(`Move made by ${player} at position ${position} in game ${gameId}`);
-                console.log(`Current board state: ${game.board}`);
-            } else {
-                console.log(`Invalid move attempt by ${player} in game ${gameId}`);
-            }
+            // Switch turns
+            game.currentTurn = game.players[opponentIndex].id;
+            
+            // Notify both players about the turn change
+            game.players[currentPlayerIndex].socket.emit('turnChange', { isYourTurn: false });
+            game.players[opponentIndex].socket.emit('turnChange', { isYourTurn: true });
+            
+            console.log(`Move made by ${player} (${symbol}) at position ${position} in game ${gameId}`);
+            console.log(`Current board state: ${game.board}`);
         } else {
-            console.log(`Game ${gameId} not found`);
+            console.log(`Invalid move attempt by ${player} in game ${gameId}`);
         }
-    });
+    } else {
+        console.log(`Game ${gameId} not found`);
+    }
+});
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');

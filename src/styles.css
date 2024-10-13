@@ -118,7 +118,8 @@ ul {
 
 .return-win-screen-button,
 .replay-button,
-.toggle-blur-button {
+.toggle-blur-button,
+.requeue-button {
   margin-top: 20px;
   padding: 12px 24px;
   font-size: 18px;
@@ -134,13 +135,15 @@ ul {
 }
 
 .replay-button,
-.toggle-blur-button {
+.toggle-blur-button,
+.requeue-button {
   margin-top: 15px;
 }
 
 .replay-button:hover,
 .toggle-blur-button:hover,
-.return-win-screen-button:hover {
+.return-win-screen-button:hover,
+.requeue-button:hover {
   background-color: #45a049;
 }
 

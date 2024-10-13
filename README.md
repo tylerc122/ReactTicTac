@@ -24,6 +24,8 @@
 - MongoDB
 - RESTful API's
 - bcrypt
+- JWT
+- Socket.io
 
 ## Installation
 

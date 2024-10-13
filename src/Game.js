@@ -520,6 +520,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         <div className="game-container">
             {isOnlineMode ? (
                 <>
+                    <div className="scoreboard">
+                    </div>
                     {!gameId && !isWaiting && (
                         <button onClick={handleFindMatch}>Find Online Match</button>
                     )}
@@ -530,11 +532,11 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                         </>
                     )}
                     {gameId && (
-                        <>
+                        <div className='online-match-stats'>
                             <p>Playing against: {opponent}</p>
                             <p>You are: {playerSymbol || 'Waiting for symbol...'}</p>
                             <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
-                        </>
+                        </div>
                     )}
                     <div className="game">
                         <div className="game-board">

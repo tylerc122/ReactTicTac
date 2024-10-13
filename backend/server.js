@@ -23,14 +23,15 @@ const io = socketIo(server, {
 let waitingPlayers = new Map();
 let activeGames = new Map();
 
+// Define connection listener
 io.on('connection', (socket) => {
     console.log('New client connected', socket.id);
 
+    // Leaving this test listener just so I know for sure that things are working properly
     socket.on('test', (message) => {
         console.log('Received test message:', message);
         socket.emit('testResponse', 'Server received: ' + message);
     });
-
     socket.on('findMatch', (userId) => {
         console.log(`User ${userId} is looking for a match`);
         waitingPlayers.delete(userId);

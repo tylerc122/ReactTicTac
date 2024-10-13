@@ -38,7 +38,7 @@ function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
 
-function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen, showCoinFlip, isBotTurn, isProcessingTurn }) {
+function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, returnToWinScreen, showCoinFlip, isBotTurn, isProcessingTurn, opponentDisconnected, handleFindMatch, isOnlineMode}) {
     const [confettiLaunched, setConfettiLaunched] = React.useState(false);
 
     function handleClick(i) {
@@ -57,7 +57,11 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
             setConfettiLaunched(true);
         }
     }, [winner, confettiLaunched]);
-    if (winner) {
+
+    if(opponentDisconnected){
+        status = "Opponent Disconnected, you freakin win."
+    }
+    else if (winner) {
         status = "Winner: " + winner + "!";
     } else if (isDraw) {
         status = "It's a draw!";
@@ -68,7 +72,7 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
     return (
         <>
             <div className="board-container">
-                <div className={`board ${winner || isDraw ? (showOverlay ? 'blur' : '') : ''}`}>
+                <div className={`board ${winner || isDraw || opponentDisconnected ? (showOverlay ? 'blur' : '') : ''}`}>
                     <div className="status">{status}</div>
                     <div className="board-row">
                         <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
@@ -86,15 +90,18 @@ function Board({ xIsNext, squares, onPlay, onReset, showOverlay, toggleOverlay, 
                         <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
                     </div>
                 </div>
-                {(winner || isDraw) && showOverlay && (
+                {(winner || isDraw || opponentDisconnected) && showOverlay && (
                     <div className="winner-overlay">
                         <div>{status}</div>
-                        <button className="replay-button" onClick={onReset}>Replay?</button>
+                        {isOnlineMode ? (
+                        <button className="requeue-button" onClick={handleFindMatch}>QUEUE TF UP</button>
+                        ) : (<button className="replay-button" onClick={onReset}>Replay?</button>
+                        )}
                         <button className="toggle-blur-button" onClick={toggleOverlay}>Toggle Blur</button>
                     </div>
                 )}
 
-                {(winner || isDraw) && !showOverlay && (
+                {(winner || isDraw || opponentDisconnected) && !showOverlay && (
                     <button className="return-win-screen-button" onClick={returnToWinScreen}>
                         Return To Win Screen
                     </button>
@@ -145,9 +152,13 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [isWaiting, setIsWaiting] = useState(false);
     const [playerSymbol, setPlayerSymbol] = useState(null);
     const [isMyTurn, setIsMyTurn] = useState(false);
+    const [opponentDisconnected, setOpponentDisconnected] = useState(false);
 
+    // Hook that handles when an online match found
     useEffect(() => {
         if (isOnlineMode) {
+            // Set up listener for matchFound socket connection, we wait for an emitter to emit matchFound,
+            // we then update variables accordingly.
             socket.on('matchFound', ({ gameId, opponent, start, symbol }) => {
                 setGameId(gameId);
                 setOpponent(opponent);
@@ -162,8 +173,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 console.log(`Match found. You are ${symbol}. ${start ? 'Your turn' : "Opponent's turn"}`);
             });
 
+            // Listener for the opponentMove
             socket.on('opponentMove', ({ position, player }) => {
                 setCurrentSquares(prevSquares => {
+                    // Create new arr & update accordingly based on player symbol & pos
                     const nextSquares = [...prevSquares];
                     nextSquares[position] = player === 'X' ? 'X' : 'O';
                     return nextSquares;
@@ -172,16 +185,26 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                 console.log(`Opponent moved: ${player} at position ${position}`);
             });
 
+            // Listener for turnChange
             socket.on('turnChange', ({ isYourTurn }) => {
                 setIsMyTurn(isYourTurn);
                 console.log(`Turn changed. Is it your turn? ${isYourTurn}`);
             });
 
+            // Listener for opponent disconnecting
             socket.on('opponentDisconnected', () => {
                 console.log('Opponent disconnected');
                 // Handle opponent disconnection (e.g., end game, show message)
                 setGameEnded(true);
                 setShowOverlay(true);
+                setOpponentDisconnected(true);
+                setCurrentSquares(prevSquares => {
+                    const winner = calculateWinner(prevSquares);
+                    if (!winner){
+                        handleGameEnd(playerSymbol);
+                    }
+                    return prevSquares;
+                })
                 // Should probably display a diff message for a disconnection
             });
 
@@ -365,7 +388,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         if (!isOfflineMode && user) {
             try {
                 let statResult;
-                if (result === 'X' && xIsNext) statResult = 'win';
+                // If the opponent disconnects, we give the win to the player still in game
+                if (result === playerSymbol || opponentDisconnected) statResult = 'win';
                 else if (result === 'O' && !xIsNext) statResult = 'loss';
                 else if (result === 'draw') statResult = 'draw';
 
@@ -391,9 +415,9 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }
 
     function handleSquareClick(i) {
+        // Online mode
         if (isOnlineMode) {
             if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares)) return;
-
             const nextSquares = [...currentSquares];
             nextSquares[i] = playerSymbol;
             setCurrentSquares(nextSquares);
@@ -401,6 +425,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             socket.emit('move', { gameId, position: i, player: user.id });
             setIsMyTurn(false); // Immediately set to false after making a move
             console.log(`You moved: ${playerSymbol} at position ${i}`);
+
             // Bot mode
         } else if (offlineGameType === 'bot') {
             if (showCoinFlip || isBotTurn || isProcessingTurn || currentSquares[i] || calculateWinner(currentSquares)) {
@@ -409,6 +434,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             const nextSquares = currentSquares.slice();
             nextSquares[i] = playerSymbol;
             handlePlay(nextSquares, true);
+
             // Couch play
         } else {
             if (currentSquares[i] || calculateWinner(currentSquares)) return;
@@ -426,6 +452,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setGameInitialized(false);
         setGameEnded(false);
         setShowOverlay(false);
+        setOpponentDisconnected(false);
 
         setHistory([Array(9).fill(null)]);
         setCurrentMove(0);
@@ -517,6 +544,8 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                                 isBotTurn={false}
                                 isProcessingTurn={!isMyTurn || !gameId}
                                 showCoinFlip={false}
+                                opponentDisconnected={opponentDisconnected}
+                                handleFindMatch={handleFindMatch}
                             />
                         </div>
                     </div>
@@ -565,6 +594,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                                         gameEnded={gameEnded} 
                                         isBotTurn={isBotTurn || isProcessingTurn}
                                         showCoinFlip={showCoinFlip}
+                                        isOnlineMode={isOnlineMode}
                                     />
                                 </div>
                                 <div className={`game-info ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>

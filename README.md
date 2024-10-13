@@ -14,7 +14,7 @@
 - Account statistics
 - Play against a bot
 - Various bot difficulties
-- Online play (**_COMING SOON!!_**)
+- Online play
 - Leaderboard (**_COMING SOON!!_**)
 
 ## Technologies Used

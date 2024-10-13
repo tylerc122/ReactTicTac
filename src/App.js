@@ -7,7 +7,6 @@ import Navbar from './Navbar';
 import { useAuth } from './AuthContext';
 import './styles.css';
 import Statistics from './Statistics';
-import SocketTest from './SocketTest';
 
 function App() {
   const { user } = useAuth();

@@ -268,7 +268,20 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         if (user) {
             socket.emit('findMatch', user.id);
             setIsWaiting(true);
+            resetGameState();
         }
+    }
+
+    function resetGameState() {
+        setGameId(null);
+        setOpponent(null);
+        setPlayerSymbol(null);
+        setIsMyTurn(false);
+        setCurrentSquares(Array(9).fill(null));
+        setXIsNext(true);
+        setGameEnded(false);
+        setShowOverlay(false);
+        setOpponentDisconnected(false);
     }
 
     function handleCancelMatch() {
@@ -507,11 +520,6 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         <div className="game-container">
             {isOnlineMode ? (
                 <>
-                    <div className="scoreboard">
-                        <div>X Score: {xScore}</div>
-                        <div>O Score: {oScore}</div>
-                        <div>Draws: {draws}</div>
-                    </div>
                     {!gameId && !isWaiting && (
                         <button onClick={handleFindMatch}>Find Online Match</button>
                     )}
@@ -546,6 +554,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                                 showCoinFlip={false}
                                 opponentDisconnected={opponentDisconnected}
                                 handleFindMatch={handleFindMatch}
+                                isOnlineMode={isOnlineMode}
                             />
                         </div>
                     </div>

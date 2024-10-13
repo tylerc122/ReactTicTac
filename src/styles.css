@@ -54,6 +54,10 @@ ul {
   flex-direction: column;
 }
 
+.game-container .game .board-container {
+  margin-top: -27%;
+}
+
 .board {
   filter: none;
   transition: filter 0.3s;
@@ -159,4 +163,11 @@ ul {
   margin-top: 20px;
   font-size: 20px;
   text-align: center;
+}
+
+.statistics {
+
+}
+.online-match-stats{
+
 }

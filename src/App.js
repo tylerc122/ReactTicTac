@@ -44,7 +44,6 @@ function App() {
       ) : (
         user ? <Game isOfflineMode={false} offlineGameType={null} /> : <Login />
       )}
-      <SocketTest />
     </div>
   );
 }

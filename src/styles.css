@@ -77,7 +77,6 @@ ul {
   height: 200px;
   margin-right: -1px;
   margin-top: -1px;
-  padding: 0;
   text-align: center;
   width: 200px;
 }
@@ -166,8 +165,17 @@ ul {
 }
 
 .statistics {
+  margin-top: 15px;
+  box-shadow: #999;
+  outline: #45a049;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: 0 2px 7px black;
+  max-width: 300px;
 
 }
 .online-match-stats{
 
+}
+.login-contatiner{
 }

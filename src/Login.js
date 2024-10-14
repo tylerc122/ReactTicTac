@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { login, register } from './api';
 import { useAuth } from './AuthContext';
+import styled, { css } from 'styled-components'
 
 function Login() {
     // useState hooks to manage username, password states.
@@ -43,10 +44,11 @@ function Login() {
         color: message === 'Registration success! You are now able to log in' ? '#0066cc' : '#721c24',
     };
 
+
     return (
         <div>
             {message && <div style={messageStyle}>{message}</div>}
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{marginTop: '1vh'}}>
                 <input
                     // On submit
                     type="text"

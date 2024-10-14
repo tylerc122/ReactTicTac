@@ -8,7 +8,7 @@ function Navbar() {
     console.log('Current user:', user);
 
     return (
-        <nav style={{ background: '#f8f8f8', padding: '10px', textAlign: 'center', borderBottom: '1px solid #ccc' }}>
+        <nav style={{ background: '#f8f8f8', padding: '10px', textAlign: 'center', borderBottom: '1px solid #ccc', position: 'fixed', left: 0, top: 0, width: '100%'}}>
             {user ? (
                 <>
                     <span>Welcome, {user.username || 'User'}!</span>

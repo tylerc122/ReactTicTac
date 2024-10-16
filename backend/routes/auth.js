@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
     try {
         // Get the required elements from the client's request body.
-        const { username, password } = req.body;
+        const { username, password, confirmPassword } = req.body;
 
         // We must check whether or not this user already exists in our db.
         // We verify that they don't exist by checking if their username exists, since we require unique usernames,
@@ -27,9 +27,14 @@ router.post('/register', async (req, res) => {
         // Hash the users password with bcrypt.
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        if(password === confirmPassword){
         // Creating new user instance with the password we just hashed.
         const user = new User({ username, password: hashedPassword });
         await user.save();
+        }
+        else {
+            return res.status(400).json({ error: 'Passwords do not match'});
+        }
 
         // Give a success message.
         res.status(201).json({ message: 'User created successfully' });

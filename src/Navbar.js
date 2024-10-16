@@ -1,6 +1,8 @@
 // Defines the format of the navbar at the top of the screen.
 import React from 'react';
 import { useAuth } from './AuthContext';
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+
 
 function Navbar() {
     const { user, logout } = useAuth();
@@ -8,16 +10,18 @@ function Navbar() {
     console.log('Current user:', user);
 
     return (
-        <nav style={{ background: '#f8f8f8', padding: '10px', textAlign: 'center', borderBottom: '1px solid #ccc', position: 'fixed', left: 0, top: 0, width: '100%'}}>
-            {user ? (
-                <>
-                    <span>Welcome, {user.username || 'User'}!</span>
-                    <button onClick={logout} style={{ marginLeft: '20px' }}>Logout</button>
-                </>
-            ) : (
-                <span>Please log in</span>
-            )}
-        </nav>
+        <AppBar position="fixed">
+            <Toolbar>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    {user ? `Welcome, ${user.username || 'User'}!` : 'Please log in'}
+                </Typography>
+                {user && (
+                    <Button color="inherit" onClick={logout}>
+                        Logout
+                    </Button>
+                )}
+            </Toolbar>
+        </AppBar>
     );
 }
 

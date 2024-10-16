@@ -1,23 +1,40 @@
 import React, { useState } from 'react';
 import { login, register } from './api';
 import { useAuth } from './AuthContext';
-import styled, { css } from 'styled-components'
+import { Box, TextField, Button, Typography, Container, Alert } from '@mui/material';
+
 
 function Login() {
     // useState hooks to manage username, password states.
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
     const [message, setMessage] = useState('')
     const { login: authLogin } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setMessage('');
         try {
+            // Enforcing that password length is at least 8 characters
+            if (isRegistering && password.length <= 8) {
+                setMessage('Password must be longer than 8 characters');
+                return;
+            }
             // Checking if registering
-            if (isRegistering) {
+            if(isRegistering){
+                if (password !== confirmPassword) {
+                    setMessage('Passwords do not match');
+                    return;
+                }
                 // Registration logic
-                await register(username, password);
+                const response = await register(username, password, confirmPassword);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    setMessage(errorData.error || 'Registration failed. Please try again.');
+                    return;
+                }
                 setMessage('Registration success! You are now able to log in');
                 setIsRegistering(false);
             } else {
@@ -30,47 +47,86 @@ function Login() {
             }
         } catch (error) {
             // Actually have message indicating failure instead of just logging in the console.
-            setMessage(isRegistering ? 'Registration failed. Please refresh and try again.' : 'Login failed. Double check your credentials.')
+            setMessage('An unexpected error occurred. Please try again.');
         }
     };
 
-    // Style for the message, currently, message is blue if successful, red if anything but successful.
-    const messageStyle = {
-        padding: '10px',
-        marginBottom: '10px',
-        borderRadius: '4px',
-        fontWeight: 'bold',
-        backgroundColor: message === 'Registration success! You are now able to log in' ? '#e6f3ff' : '#f8d7da',
-        color: message === 'Registration success! You are now able to log in' ? '#0066cc' : '#721c24',
-    };
-
-
     return (
-        <div>
-            {message && <div style={messageStyle}>{message}</div>}
-            <form onSubmit={handleSubmit} style={{marginTop: '1vh'}}>
-                <input
-                    // On submit
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
-                />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                />
-                <button type="submit">{isRegistering ? 'Register' : 'Login'}</button>
-                <button type="button" onClick={() => {
-                    setIsRegistering(!isRegistering);
-                    setMessage('');
-                }}>
-                    {isRegistering ? 'Switch to Login' : 'Switch to Register'}
-                </button>
-            </form>
-        </div>
+        <Container component="main" maxWidth="xs">
+            <Box
+                sx={{
+                    marginTop: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                }}
+            >
+                <Typography component="h1" variant="h5">
+                    {isRegistering ? 'Register' : 'Sign In'}
+                </Typography>
+                {message && (
+                    <Alert severity={message.includes('success') ? 'success' : 'error'} sx={{ width: '100%', mt: 2 }}>
+                        {message}
+                    </Alert>
+                )}
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="username"
+                        label="Username"
+                        name="username"
+                        autoComplete="username"
+                        autoFocus
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {isRegistering &&
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="confirmPassword"
+                        label="Confirm Password"
+                        type="password"
+                        id="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    }
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                    >
+                        {isRegistering ? 'Register' : 'Sign In'}
+                    </Button>
+                    <Button
+                        fullWidth
+                        onClick={() => {
+                            setIsRegistering(!isRegistering);
+                            setMessage('');
+                        }}
+                    >
+                        {isRegistering ? 'Switch to Login' : 'Switch to Register'}
+                    </Button>
+                </Box>
+            </Box>
+        </Container>
     );
 }
 

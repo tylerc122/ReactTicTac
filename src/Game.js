@@ -6,8 +6,22 @@ import { getGameState, updateGameState, updateStats } from './api';
 import { useAuth } from './AuthContext';
 import { MakeBot } from './bots/MakeBot';
 import io from 'socket.io-client';
+import { Button, Typography, Paper, Grid } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 const socket = io('http://localhost:5001');
+
+const ModeSelectionPaper = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(3),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
+    marginBottom: theme.spacing(2),
+  }));
+  
+  const ModeButton = styled(Button)(({ theme }) => ({
+    margin: theme.spacing(1),
+    padding: theme.spacing(1, 3),
+  }));
 
 function calculateWinner(squares) {
     if (!Array.isArray(squares)) {
@@ -125,6 +139,8 @@ function launchConfetti() {
 }
 
 export default function Game({ isOfflineMode, offlineGameType }) {
+
+    // Game logic stuff
     const [history, setHistory] = useState([Array(9).fill(null)]);
     const [currentMove, setCurrentMove] = useState(0);
     const [xIsNext, setXIsNext] = useState(true);
@@ -134,18 +150,11 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [showOverlay, setShowOverlay] = useState(true);
     const [confettiLaunched, setConfettiLaunched] = useState(false);
     const [gameEnded, setGameEnded] = useState(false);
-    const { user, updateUser } = useAuth();
     const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
-    const [botDifficulty, setBotDifficulty] = useState(null);
-    const [bot, setBot] = useState(null);
-    const [difficultySelected, setDifficultySelected] = useState(false);
-    const [playerStarts, setPlayerStarts] = useState(true);
-    const [showCoinFlip, setShowCoinFlip] = useState(false);
-    const [shouldCoinFlip, setShouldCoinFlip] = useState(false);
     const [gameInitialized, setGameInitialized] = useState(false);
-    const [isBotTurn, setIsBotTurn] = useState(false);
-    const [isProcessingTurn, setIsProcessingTurn] = useState(false);
-    const [botSymbol, setBotSymbol] = useState('O');
+
+    // Online stuff
+    const { user, updateUser } = useAuth();
     const [isOnlineMode, setIsOnlineMode] = useState(!isOfflineMode);
     const [gameId, setGameId] = useState(null);
     const [opponent, setOpponent] = useState(null);
@@ -153,6 +162,28 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     const [playerSymbol, setPlayerSymbol] = useState(null);
     const [isMyTurn, setIsMyTurn] = useState(false);
     const [opponentDisconnected, setOpponentDisconnected] = useState(false);
+
+    // Offline stuff
+    const [botDifficulty, setBotDifficulty] = useState(null);
+    const [bot, setBot] = useState(null);
+    const [botSymbol, setBotSymbol] = useState('O');
+    const [isBotTurn, setIsBotTurn] = useState(false);
+    const [botInitialized, setBotInitialized] = useState(false);
+    const [difficultySelected, setDifficultySelected] = useState(false);
+    const [playerStarts, setPlayerStarts] = useState(true);
+    const [showCoinFlip, setShowCoinFlip] = useState(false);
+    const [shouldCoinFlip, setShouldCoinFlip] = useState(false);
+    const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+
+
+
+
+
+
+
+
+
+
 
     // Hook that handles when an online match found
     useEffect(() => {
@@ -232,7 +263,9 @@ export default function Game({ isOfflineMode, offlineGameType }) {
 
     useEffect(() => {
         if(offlineGameType === 'bot' && botDifficulty){
-            setBot(MakeBot.createBot(botDifficulty));
+            const newBot = MakeBot.createBot(botDifficulty);
+            setBot(newBot);
+            setBotInitialized(true);
             setGameInitialized(false);
         }
     }, [offlineGameType, botDifficulty]);
@@ -247,7 +280,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         const isBotMode = isOfflineMode && offlineGameType === 'bot';
         const isBotMove = isBotMode && isBotTurn;
         
-        if (isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null)) {
+        if (isBotMove && !calculateWinner(currentSquares) && gameInitialized && !showCoinFlip && currentSquares.some(square => square === null) && botInitialized) {
             setIsProcessingTurn(true);
             const timer = setTimeout(() => {
                 const botMove = bot.makeMove(currentSquares);
@@ -262,7 +295,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [currentSquares, isBotTurn, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol]);
+    }, [currentSquares, isBotTurn, isOfflineMode, offlineGameType, bot, gameInitialized, showCoinFlip, botSymbol, botInitialized]);
 
     function handleFindMatch() {
         if (user) {
@@ -314,11 +347,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         if (isOfflineMode && offlineGameType === 'bot' && bot) {
             bot.setSymbol(botSymbol);
         }
-    }, [botSymbol, isOfflineMode, offlineGameType, bot]);
+    }, [botSymbol, isOfflineMode, offlineGameType, bot, botInitialized]);
 
     function handleBotDifficulty(difficulty){
         setBotDifficulty(difficulty);
-        setBot(MakeBot.createBot(difficulty));
         setDifficultySelected(true);
         resetGame();
     }
@@ -327,6 +359,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setDifficultySelected(false);
         setBotDifficulty(null);
         setBot(null);
+        setBotInitialized(false);
         setGameInitialized(false);
     }
     
@@ -562,16 +595,36 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                     </div>
                 </>
             ) : (
-                <>
-                    {isOfflineMode && offlineGameType === 'bot' && !difficultySelected ? (
-                        <div className="bot-difficulty-selection">
-                            <h2>Select Bot Difficulty</h2>
-                            <button onClick={() => handleBotDifficulty('easy')}>Easy</button>
-                            <button onClick={() => handleBotDifficulty('medium')}>Medium</button>
-                            <button onClick={() => handleBotDifficulty('hard')}>Hard</button>
-                            <button onClick={() => handleBotDifficulty('impossible')}>Impossible</button>
-                        </div>
-                    ) : (
+            <>
+            {isOfflineMode && offlineGameType === 'bot' && !difficultySelected ? (
+                    <ModeSelectionPaper elevation={3}>
+                        <Typography variant="h5" gutterBottom>
+                            Select Bot Difficulty
+                            </Typography>
+                            <Grid container spacing={2} justifyContent="center">
+                                <Grid item>
+                                    <ModeButton variant="contained" color="primary" onClick={() => handleBotDifficulty('easy')}>
+                                        Easy
+                                        </ModeButton>
+                                        </Grid>
+                                        <Grid item>
+                                            <ModeButton variant="contained" color="primary" onClick={() => handleBotDifficulty('medium')}>
+                                                Medium
+                                                </ModeButton>
+                                                </Grid>
+                                                <Grid item>
+                                                    <ModeButton variant="contained" color="primary" onClick={() => handleBotDifficulty('hard')}>
+                                                        Hard
+                                                        </ModeButton>
+                                                        </Grid>
+                                                        <Grid item>
+                                                            <ModeButton variant="contained" color="secondary" onClick={() => handleBotDifficulty('impossible')}>
+                                                                Impossible
+                                                                </ModeButton>
+                                                                </Grid>
+                                                                </Grid>
+                                                                </ModeSelectionPaper>
+                                                                ) : (
                         <>
                             <div className={`scoreboard ${(calculateWinner(currentSquares) || currentSquares.every(square => square !== null)) && showOverlay ? 'blur' : ''}`}>
                                 <div>X Score: {xScore}</div>

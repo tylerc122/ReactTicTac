@@ -7,6 +7,7 @@ import Navbar from './Navbar';
 import { useAuth } from './AuthContext';
 import './styles.css';
 import Statistics from './Statistics';
+import { Button } from '@mui/material';
 
 function App() {
   const { user } = useAuth();
@@ -25,17 +26,17 @@ function App() {
   return (
     <div className="App">
       <Navbar />
-      <div style={{ marginTop: '10px' }}></div>
-      <button onClick={toggleOfflineMode}>
+      <div style={{ marginTop: '80px' }}></div>
+      <Button onClick={toggleOfflineMode}>
         {isOfflineMode ? 'Switch to Online Mode' : 'Switch to Offline Mode'}
-      </button>
+      </Button>
       {user && <Statistics />}
       {isOfflineMode ? (
         <>
           {!offlineGameType && (
             <div>
-              <button onClick={() => selectOfflineGameType('local')}>Play with a Friend</button>
-              <button onClick={() => selectOfflineGameType('bot')}>Play Against Bot</button>
+              <Button variant= "contained" onClick={() => selectOfflineGameType('local')}>Play with a Friend</Button>
+              <Button variant= "contained" sx={{ml: '1%'}}onClick={() => selectOfflineGameType('bot')}>Play Against Bot</Button>
             </div>
           )}
           {offlineGameType && <Game isOfflineMode={true} offlineGameType={offlineGameType} />}

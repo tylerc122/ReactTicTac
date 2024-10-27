@@ -170,7 +170,7 @@ ul {
   outline: #45a049;
   background-color: #f8f8f8;
   border-radius: 8px;
-  box-shadow: 0 2px 7px black;
+  padding: 2vh;
   max-width: 300px;
 
 }

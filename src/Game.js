@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-const socket = io("http://localhost:5001");
+const socket = io("http://157.245.242.90");
 
 const ModeSelectionPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),

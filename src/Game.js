@@ -49,10 +49,10 @@ const BoardWrapper = styled(Box)(({ theme }) => ({
 
 const GameInfoBox = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(0),
-  padding: theme.spacing(3),
+  padding: theme.spacing(1),
+  marginBottom: theme.spacing(6),
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[1],
   textAlign: "center",
 }));
 
@@ -104,8 +104,6 @@ function Board({
   handleFindMatch,
   isOnlineMode,
 }) {
-  const [confettiLaunched, setConfettiLaunched] = React.useState(false);
-
   function handleClick(i) {
     if (
       showCoinFlip ||
@@ -122,12 +120,6 @@ function Board({
   const winner = calculateWinner(squares);
   const isDraw = !winner && squares.every((square) => square !== null);
   let status;
-  React.useEffect(() => {
-    if (winner && !confettiLaunched) {
-      launchConfetti(); // CONFETTI!!!!!
-      setConfettiLaunched(true);
-    }
-  }, [winner, confettiLaunched]);
 
   if (opponentDisconnected) {
     status = "Opponent Disconnected, you freakin win.";
@@ -318,6 +310,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
   useEffect(() => {
     setIsOnlineMode(!isOfflineMode);
   }, [isOfflineMode]);
+
+  useEffect(() => {
+    const winner = calculateWinner(currentSquares);
+    if (winner && !confettiLaunched) {
+      launchConfetti(); // CONFETTI!!!!!
+      setConfettiLaunched(true);
+    }
+  }, [currentSquares, confettiLaunched]);
 
   useEffect(() => {
     if (!isOfflineMode) {

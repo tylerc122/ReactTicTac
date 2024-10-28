@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("https://tictactyler.com");
+const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 function SocketTest() {
   const [isConnected, setIsConnected] = useState(socket.connected);

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-const socket = io("https://tictactyler.com", {
+const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
   secure: true,
 });

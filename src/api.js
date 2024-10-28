@@ -7,8 +7,8 @@ import axios from "axios";
 // We define these URLs and use them to make requests, when an action is performed client-side.
 // We use these URLs to make specific requests to our server endpoints. Then using the routes defined server-side
 // we handle these specific requests such as login, logout, changing state etc.
-const API_URL = "http://157.245.242.90/api/auth";
-const GAME_URL = "http://157.245.242.90/api/game";
+const API_URL = "https://tictactyler.com/api/auth";
+const GAME_URL = "https://tictactyler.com/api/game";
 
 /// Define an asynchronus function that registers a new user.
 /// Makes a POST request to the register endpoint.

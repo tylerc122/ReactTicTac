@@ -16,7 +16,10 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-const socket = io("http://157.245.242.90");
+const socket = io("https://tictactyler.com", {
+  transports: ["websocket"],
+  secure: true,
+});
 
 const ModeSelectionPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),

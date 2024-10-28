@@ -12,7 +12,7 @@ const GAME_URL = "https://tictactyler.com/api/game";
 
 /// Define an asynchronus function that registers a new user.
 /// Makes a POST request to the register endpoint.
-export const register = async (username, password) => {
+export const register = async (username, password, confirmPassword) => {
   try {
     // Make a POST request to /api/auth/register with parameters username & password
     // Since this is an async function, we can use the await keyword to have it run like a sync func.
@@ -20,6 +20,7 @@ export const register = async (username, password) => {
     const response = await axios.post(`${API_URL}/register`, {
       username,
       password,
+      confirmPassword,
     });
     // If no errors and promise if fulfilled we execute further, and return the response which has
     // the data from the server.

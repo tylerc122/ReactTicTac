@@ -271,6 +271,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         setCurrentMove(0);
         setXIsNext(true);
         setCurrentSquares(Array(9).fill(null));
+        console.log("Opponent state after setting:", opponent);
         console.log(
           `Match found. You are ${symbol}. ${
             start ? "Your turn" : "Opponent's turn"
@@ -695,7 +696,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
           )}
           {gameId && (
             <div className="online-match-stats">
-              <p>Playing against: {opponent.username || "Unknown Player"}</p>
+              <p>
+                Playing against: {opponent?.username || "Unknown Player"}
+                (Debug - opponent object: {JSON.stringify(opponent)})
+              </p>
               <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
               <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
             </div>

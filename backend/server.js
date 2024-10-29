@@ -87,6 +87,13 @@ io.on("connection", (socket) => {
             start: false,
             symbol: "O",
           });
+          console.log("Sending match data to second player:", {
+            gameId,
+            opponent: {
+              id: waitingUserId,
+              username: waitingUser.username,
+            },
+          });
 
           activeGames.set(gameId, {
             players: [

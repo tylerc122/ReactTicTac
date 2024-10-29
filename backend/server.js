@@ -11,10 +11,14 @@ dotenv.config();
 
 const corsOptions = {
   origin: [
-    "https://react-tic-tac-coral.vercel.app/",
+    "https://react-tic-tac-coral.vercel.app",
     "https://tictactyler.com",
+    "https://www.tictactyler.com",
+    "http://localhost:3000",
   ],
-  optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
 };
 
 const app = express();

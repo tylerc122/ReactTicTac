@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
           socket.emit("matchFound", {
             gameId,
             opponent: {
-              waitingUserId,
+              id: waitingUserId,
               username: waitingUser.username,
             },
             start: false,

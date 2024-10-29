@@ -22,8 +22,11 @@ const SOCKET_URL =
     : "https://api.tictactyler.com";
 
 const socket = io(SOCKET_URL, {
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
   secure: true,
+  rejectUnauthorized: false,
+  path: "/socket.io",
+  withCredentials: true,
 });
 
 const ModeSelectionPaper = styled(Paper)(({ theme }) => ({

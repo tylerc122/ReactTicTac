@@ -233,7 +233,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
   const { user, updateUser } = useAuth();
   const [isOnlineMode, setIsOnlineMode] = useState(!isOfflineMode);
   const [gameId, setGameId] = useState(null);
-  const [opponent, setOpponent] = useState(null);
+  const [opponent, setOpponent] = useState({ id: null, username: null });
   const [isWaiting, setIsWaiting] = useState(false);
   const [playerSymbol, setPlayerSymbol] = useState(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
@@ -254,11 +254,15 @@ export default function Game({ isOfflineMode, offlineGameType }) {
   // Hook that handles when an online match found
   useEffect(() => {
     if (isOnlineMode) {
+      // Sending info to server when a user connects
+      if (user) {
+        socket.emit("userConnected", { userId: user.id });
+      }
       // Set up listener for matchFound socket connection, we wait for an emitter to emit matchFound,
       // we then update variables accordingly.
       socket.on("matchFound", ({ gameId, opponent, start, symbol }) => {
         setGameId(gameId);
-        setOpponent(opponent);
+        setOpponent(opponent); // This now recieves {id, username}
         setIsWaiting(false);
         setPlayerSymbol(symbol);
         setIsMyTurn(start);
@@ -316,7 +320,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         socket.off("opponentDisconnected");
       };
     }
-  }, [isOnlineMode]);
+  }, [isOnlineMode, user]);
 
   useEffect(() => {
     setIsOnlineMode(!isOfflineMode);
@@ -691,7 +695,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
           )}
           {gameId && (
             <div className="online-match-stats">
-              <p>Playing against: {opponent}</p>
+              <p>Playing against: {opponent.username || "Unknown Player"}</p>
               <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
               <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
             </div>

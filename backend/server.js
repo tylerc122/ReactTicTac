@@ -6,6 +6,7 @@ const cors = require("cors");
 const gameRoutes = require("./routes/gameRoutes");
 const http = require("http");
 const socketIo = require("socket.io");
+const User = require("./models/User");
 
 dotenv.config();
 
@@ -27,53 +28,98 @@ const io = socketIo(server, {
   cors: corsOptions,
 });
 
-let waitingPlayers = new Map();
+let waitingPlayers = new Map(); // Modifying this to store more info
 let activeGames = new Map();
 
 // Define connection listener
 io.on("connection", (socket) => {
   console.log("New client connected", socket.id);
 
-  socket.on("findMatch", (userId) => {
-    console.log(`User ${userId} is looking for a match`);
-    waitingPlayers.delete(userId);
+  socket.on("userConnected", async (userData) => {
+    try {
+      const user = await User.findById(userData.userId);
+      if (user) {
+        socket.userData = {
+          userId: user._id,
+          username: user.username,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  });
 
-    for (let [waitingUserId, waitingSocket] of waitingPlayers) {
-      if (waitingUserId !== userId) {
-        // Match found
-        const gameId = Math.random().toString(36).substring(2, 9);
-        waitingSocket.emit("matchFound", {
-          gameId,
-          opponent: userId,
-          start: true,
-          symbol: "X",
-        });
-        socket.emit("matchFound", {
-          gameId,
-          opponent: waitingUserId,
-          start: false,
-          symbol: "O",
-        });
-        waitingPlayers.delete(waitingUserId);
-        activeGames.set(gameId, {
-          players: [
-            { id: waitingUserId, socket: waitingSocket, symbol: "X" },
-            { id: userId, socket: socket, symbol: "O" },
-          ],
-          currentTurn: waitingUserId,
-          board: Array(9).fill(null),
-        });
-        console.log(
-          `Match found: ${waitingUserId} vs ${userId}, Game ID: ${gameId}`
-        );
+  socket.on("findMatch", async (userId) => {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        console.error("User not found:", userId);
         return;
       }
-    }
 
-    // No match found, add to waiting list
-    waitingPlayers.set(userId, socket);
-    socket.emit("waiting");
-    console.log(`User ${userId} added to waiting list`);
+      console.log(`User ${userId} is looking for a match`);
+      waitingPlayers.delete(userId);
+
+      for (let [waitingUserId, waitingSocket] of waitingPlayers) {
+        if (waitingUserId !== userId) {
+          // Match found
+          const waitingUser = await User.findById(waitingUserId);
+          if (!waitingUser) continue;
+
+          const gameId = Math.random().toString(36).substring(2, 9);
+
+          waitingSocket.emit("matchFound", {
+            gameId,
+            opponent: {
+              id: userId,
+              username: user.username,
+            },
+            start: true,
+            symbol: "X",
+          });
+
+          socket.emit("matchFound", {
+            gameId,
+            opponent: {
+              waitingUserId,
+              username: waitingUser.username,
+            },
+            start: false,
+            symbol: "O",
+          });
+
+          activeGames.set(gameId, {
+            players: [
+              {
+                id: waitingUserId,
+                username: waitingUser.username,
+                socket: waitingSocket,
+                symbol: "X",
+              },
+              {
+                id: userId,
+                username: user.username,
+                socket: socket,
+                symbol: "O",
+              },
+            ],
+            currentTurn: waitingUserId,
+            board: Array(9).fill(null),
+          });
+          console.log(
+            `Match found: ${waitingUser.username} vs ${user.username}, Game ID: ${gameId}`
+          );
+          return;
+        }
+      }
+
+      // No match found, add to waiting list
+      waitingPlayers.set(userId, socket);
+      socket.emit("waiting");
+      console.log(`User ${userId} added to waiting list`);
+    } catch (error) {
+      console.error("Error in findMatch:", error);
+    }
   });
 
   socket.on("cancelMatch", (userId) => {

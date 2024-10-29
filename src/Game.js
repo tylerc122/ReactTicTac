@@ -546,28 +546,36 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     if (!isOfflineMode && user) {
       try {
         let statResult;
-        // If the opponent disconnects, we give the win to the player still in game
-        if (result === playerSymbol || opponentDisconnected) statResult = "win";
-        else if (result === "O" && !xIsNext) statResult = "loss";
-        else if (result === "draw") statResult = "draw";
+        // Determine the result based on player's symbol and game outcome
+        if (opponentDisconnected) {
+          statResult = "win"; // Auto-win if opponent disconnects
+        } else if (result === "draw") {
+          statResult = "draw";
+        } else {
+          // Compare player's symbol with the winning symbol
+          statResult = result === playerSymbol ? "win" : "loss";
+        }
 
-        const updatedStats = await updateStats(user._id, statResult);
-        setXScore(updatedStats.wins);
-        setOScore(updatedStats.losses);
-        setDraws(updatedStats.draws);
+        console.log("Updating stats with result:", statResult);
 
+        const updatedStats = await updateStats(statResult);
+
+        console.log("Received updated stats:", updatedStats);
+
+        if (updatedStats) {
+          updateUser({
+            ...user,
+            stats: updatedStats,
+          });
+        }
+
+        // Reset game state
         await updateGameState(Array(9).fill(null));
-
-        updateUser({
-          ...user,
-          stats: updatedStats,
-        });
       } catch (error) {
-        console.error("Failed to update overall stats:", error);
+        console.error("Failed to update stats:", error);
       }
     }
 
-    // Remove the timeout here to keep the game in the end state until the player chooses to reset
     setGameInitialized(false);
   }
 

@@ -104,11 +104,11 @@ export async function updateGameState(newState) {
   }
 }
 
-export const updateStats = async (userId, result) => {
+export const updateStats = async (result) => {
   try {
     const response = await axios.post(
       `${GAME_URL}/update-stats`,
-      { userId, result },
+      { result }, // Just send the result, userId will be extracted from token
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

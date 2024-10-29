@@ -7,7 +7,11 @@ import axios from "axios";
 // We define these URLs and use them to make requests, when an action is performed client-side.
 // We use these URLs to make specific requests to our server endpoints. Then using the routes defined server-side
 // we handle these specific requests such as login, logout, changing state etc.
-const BASE_URL = import.meta.env.VITE_API_URL || "https://api.tictactyler.com";
+const BASE_URL =
+  typeof import.meta.env !== "undefined"
+    ? import.meta.env.VITE_API_URL || "https://api.tictactyler.com"
+    : "https://api.tictactyler.com";
+
 const API_URL = `${BASE_URL}/api/auth`;
 const GAME_URL = `${BASE_URL}/api/game`;
 

@@ -17,7 +17,9 @@ import {
 import { styled } from "@mui/material/styles";
 
 const SOCKET_URL =
-  import.meta.env.VITE_API_URL || "https://api.tictactyler.com";
+  typeof import.meta.env !== "undefined"
+    ? import.meta.env.VITE_API_URL || "https://api.tictactyler.com"
+    : "https://api.tictactyler.com";
 
 const socket = io(SOCKET_URL, {
   transports: ["websocket"],

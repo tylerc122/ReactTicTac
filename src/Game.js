@@ -342,8 +342,10 @@ export default function Game({ isOfflineMode, offlineGameType }) {
   useEffect(() => {
     const winner = calculateWinner(currentSquares);
     if (winner && !confettiLaunched) {
-      launchConfetti(); // CONFETTI!!!!!
-      setConfettiLaunched(true);
+      if (winner === playerSymbol) {
+        launchConfetti(); // CONFETTI!!!!!
+        setConfettiLaunched(true);
+      }
     }
   }, [currentSquares, confettiLaunched]);
 

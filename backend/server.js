@@ -57,17 +57,17 @@ io.on("connection", (socket) => {
         return;
       }
 
-      console.log(`User ${userId} is looking for a match`);
+      console.log(`User ${user.username} is looking for a match`);
       waitingPlayers.delete(userId);
 
       for (let [waitingUserId, waitingSocket] of waitingPlayers) {
         if (waitingUserId !== userId) {
-          // Match found
           const waitingUser = await User.findById(waitingUserId);
           if (!waitingUser) continue;
 
           const gameId = Math.random().toString(36).substring(2, 9);
 
+          // First player (waiting player) receives second player's info
           waitingSocket.emit("matchFound", {
             gameId,
             opponent: {
@@ -78,6 +78,7 @@ io.on("connection", (socket) => {
             symbol: "X",
           });
 
+          // Second player (current player) receives first player's info
           socket.emit("matchFound", {
             gameId,
             opponent: {

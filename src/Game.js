@@ -587,16 +587,30 @@ export default function Game({ isOfflineMode, offlineGameType }) {
   function handleSquareClick(i) {
     // Online mode
     if (isOnlineMode) {
-      if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares))
+      if (!isMyTurn || currentSquares[i] || calculateWinner(currentSquares)) {
         return;
+      }
+
       const nextSquares = [...currentSquares];
       nextSquares[i] = playerSymbol;
+
+      const newWinner = calculateWinner(nextSquares);
+      const isDraw =
+        !newWinner && nextSquares.every((square) => square !== null);
+
+      // Overlay wasn't showing up & confetti only going off once, now acts like the offline mode logic
+      if (newWinner || isDraw) {
+        setGameEnded(true);
+        setShowOverlay(true);
+        setConfettiLaunched(false);
+        handleGameEnd(newWinner || isDraw);
+      }
+
       setCurrentSquares(nextSquares);
       setXIsNext(!xIsNext);
       socket.emit("move", { gameId, position: i, player: user.id });
       setIsMyTurn(false); // Immediately set to false after making a move
       console.log(`You moved: ${playerSymbol} at position ${i}`);
-
       // Bot mode
     } else if (offlineGameType === "bot") {
       if (

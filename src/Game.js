@@ -285,6 +285,18 @@ export default function Game({ isOfflineMode, offlineGameType }) {
           // Create new arr & update accordingly based on player symbol & pos
           const nextSquares = [...prevSquares];
           nextSquares[position] = player === "X" ? "X" : "O";
+
+          const newWinner = calculateWinner(nextSquares);
+          const isDraw =
+            !newWinner && nextSquares.every((square) => square !== null);
+
+          if (newWinner || isDraw) {
+            setGameEnded(true);
+            setShowOverlay(true);
+            setConfettiLaunched(false);
+            handleGameEnd(newWinner || "draw");
+          }
+
           return nextSquares;
         });
         setXIsNext((prevXIsNext) => !prevXIsNext);
@@ -598,6 +610,11 @@ export default function Game({ isOfflineMode, offlineGameType }) {
       const isDraw =
         !newWinner && nextSquares.every((square) => square !== null);
 
+      setCurrentSquares(nextSquares);
+      setXIsNext(!xIsNext);
+      socket.emit("move", { gameId, position: i, player: user.id });
+      setIsMyTurn(false); // Immediately set to false after making a move
+
       // Overlay wasn't showing up & confetti only going off once, now acts like the offline mode logic
       if (newWinner || isDraw) {
         setGameEnded(true);
@@ -606,10 +623,6 @@ export default function Game({ isOfflineMode, offlineGameType }) {
         handleGameEnd(newWinner || isDraw);
       }
 
-      setCurrentSquares(nextSquares);
-      setXIsNext(!xIsNext);
-      socket.emit("move", { gameId, position: i, player: user.id });
-      setIsMyTurn(false); // Immediately set to false after making a move
       console.log(`You moved: ${playerSymbol} at position ${i}`);
       // Bot mode
     } else if (offlineGameType === "bot") {

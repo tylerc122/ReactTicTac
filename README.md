@@ -2,9 +2,11 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/tylerc122/ReactTicTac)
 ![GitHub last commit](https://img.shields.io/github/last-commit/tylerc122/ReactTicTac)
 
-**ReactTicTac** is the classic tic-tac-toe game built with React.
+[ReactTicTac](https://www.tictactyler.com/) is the classic tic-tac-toe game built with React.
 
 ![Demo](./assets/demo.gif)
+
+**This is an old GIF I need to change it**
 
 ## Features
 
@@ -26,7 +28,6 @@
 - bcrypt
 - JWT
 - Socket.io
-
-## Installation
-
-**_WIP_**
+- Vercel
+- Digital Ocean
+- MUI

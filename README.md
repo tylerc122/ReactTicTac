@@ -13,10 +13,10 @@
 - Fun tic-tac-toe gameplay
 - Unique accounts
 - Offline mode
-- Account statistics
+- Detailed account statistics
 - Play against a bot
-- Various bot difficulties
-- Online play
+- Four different bot difficulties including an impossible mode
+- Real-time online play
 - Leaderboard (**_COMING SOON!!_**)
 
 ## Technologies Used

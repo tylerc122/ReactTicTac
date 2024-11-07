@@ -4,9 +4,11 @@
 
 [ReactTicTac](https://www.tictactyler.com/) is the classic tic-tac-toe game built with React.
 
+**NOTE: Website is still very janky UI-wise and doesn't work properly just yet.**
+
 ![Demo](./assets/demo.gif)
 
-**This is an old GIF I need to change it**
+**OLD GIF**
 
 ## Features
 
@@ -24,7 +26,7 @@
 - React
 - NodeJS
 - MongoDB
-- RESTful API's
+- RESTful API
 - bcrypt
 - JWT
 - Socket.io

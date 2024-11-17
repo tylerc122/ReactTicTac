@@ -55,16 +55,29 @@ const CoinFlipOverlay = styled("div")(({ theme }) => ({
 }));
 
 const BoardWrapper = styled(Box)(({ theme }) => ({
-  marginTop: theme.spacing(7), // Add space above the board
+  marginTop: theme.spacing(10),
 }));
 
 const GameInfoBox = styled(Box)(({ theme }) => ({
-  marginTop: theme.spacing(0),
+  marginTop: theme.spacing(2),
   padding: theme.spacing(1),
   marginBottom: theme.spacing(6),
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   textAlign: "center",
+  position: "relative",
+  zIndex: 1,
+}));
+
+const GameContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  marginTop: theme.spacing(2),
+}));
+
+const BoardContainer = styled(Box)(({ theme }) => ({
+  marginTop: theme.spacing(4),
 }));
 
 function calculateWinner(squares) {
@@ -176,7 +189,7 @@ function Board({
             <div>{status}</div>
             {isOnlineMode ? (
               <button className="requeue-button" onClick={handleFindMatch}>
-                QUEUE TF UP
+                Find another match?
               </button>
             ) : (
               <button className="replay-button" onClick={onReset}>
@@ -805,66 +818,28 @@ export default function Game({ isOfflineMode, offlineGameType }) {
             </ModeSelectionPaper>
           ) : (
             <>
-              <BoardWrapper>
-                <GameInfoBox>
-                  <Typography variant="h6" color="primary">
-                    {showCoinFlip
-                      ? "Flipping coin to decide who starts..."
-                      : gameInitialized
-                      ? playerStarts
-                        ? `You start as ${playerSymbol}`
-                        : `Bot starts as ${botSymbol}`
-                      : "Preparing game..."}
-                  </Typography>
-                </GameInfoBox>
-                <div
-                  className={`scoreboard ${
-                    (calculateWinner(currentSquares) ||
-                      currentSquares.every((square) => square !== null)) &&
-                    showOverlay
-                      ? "blur"
-                      : ""
-                  }`}
-                >
-                  <div>X Score: {xScore}</div>
-                  <div>O Score: {oScore}</div>
-                  <div>Draws: {draws}</div>
-                  {isOfflineMode && offlineGameType === "bot" && (
-                    <button onClick={resetDifficultySelection}>
-                      Change Difficulty
-                    </button>
-                  )}
-                  {showCoinFlip && (
-                    <CoinFlipOverlay>
-                      <Stack spacing={2} alignItems="center">
-                        <CircularProgress size={60} />
-                        <Typography variant="h5" style={{ color: "white" }}>
-                          Flipping coin...
-                        </Typography>
-                      </Stack>
-                    </CoinFlipOverlay>
-                  )}
-                </div>
-                <div className="game">
-                  <div className="game-board">
-                    <Board
-                      xIsNext={xIsNext}
-                      squares={currentSquares}
-                      onPlay={handleSquareClick}
-                      onReset={resetGame}
-                      showOverlay={showOverlay}
-                      toggleOverlay={toggleOverlay}
-                      returnToWinScreen={returnToWinScreen}
-                      confettiLaunched={confettiLaunched}
-                      setConfettiLaunched={setConfettiLaunched}
-                      gameEnded={gameEnded}
-                      isBotTurn={isBotTurn || isProcessingTurn}
-                      showCoinFlip={showCoinFlip}
-                      isOnlineMode={isOnlineMode}
-                    />
-                  </div>
+              {isOfflineMode && offlineGameType === "bot" && (
+                <button onClick={resetDifficultySelection}>
+                  Change Difficulty
+                </button>
+              )}
+              <GameContainer>
+                {isOfflineMode && offlineGameType === "bot" && (
+                  <GameInfoBox>
+                    <Typography variant="h6" color="primary">
+                      {showCoinFlip
+                        ? "Flipping coin to decide who starts..."
+                        : gameInitialized
+                        ? playerStarts
+                          ? `You start as ${playerSymbol}`
+                          : `Bot starts as ${botSymbol}`
+                        : "Preparing game..."}
+                    </Typography>
+                  </GameInfoBox>
+                )}
+                <BoardContainer>
                   <div
-                    className={`game-info ${
+                    className={`scoreboard ${
                       (calculateWinner(currentSquares) ||
                         currentSquares.every((square) => square !== null)) &&
                       showOverlay
@@ -872,10 +847,52 @@ export default function Game({ isOfflineMode, offlineGameType }) {
                         : ""
                     }`}
                   >
-                    <ol>{moves}</ol>
+                    <div>X Score: {xScore}</div>
+                    <div>O Score: {oScore}</div>
+                    <div>Draws: {draws}</div>
+                    {showCoinFlip && (
+                      <CoinFlipOverlay>
+                        <Stack spacing={2} alignItems="center">
+                          <CircularProgress size={60} />
+                          <Typography variant="h5" style={{ color: "white" }}>
+                            Flipping coin...
+                          </Typography>
+                        </Stack>
+                      </CoinFlipOverlay>
+                    )}
                   </div>
-                </div>
-              </BoardWrapper>
+                  <div className="game">
+                    <div className="game-board">
+                      <Board
+                        xIsNext={xIsNext}
+                        squares={currentSquares}
+                        onPlay={handleSquareClick}
+                        onReset={resetGame}
+                        showOverlay={showOverlay}
+                        toggleOverlay={toggleOverlay}
+                        returnToWinScreen={returnToWinScreen}
+                        confettiLaunched={confettiLaunched}
+                        setConfettiLaunched={setConfettiLaunched}
+                        gameEnded={gameEnded}
+                        isBotTurn={isBotTurn || isProcessingTurn}
+                        showCoinFlip={showCoinFlip}
+                        isOnlineMode={isOnlineMode}
+                      />
+                    </div>
+                    <div
+                      className={`game-info ${
+                        (calculateWinner(currentSquares) ||
+                          currentSquares.every((square) => square !== null)) &&
+                        showOverlay
+                          ? "blur"
+                          : ""
+                      }`}
+                    >
+                      <ol>{moves}</ol>
+                    </div>
+                  </div>
+                </BoardContainer>
+              </GameContainer>
             </>
           )}
         </>

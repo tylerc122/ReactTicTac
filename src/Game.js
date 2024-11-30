@@ -228,7 +228,11 @@ function launchConfetti() {
   });
 }
 
-export default function Game({ isOfflineMode, offlineGameType }) {
+export default function Game({
+  isOfflineMode,
+  offlineGameType,
+  setGameActive,
+}) {
   // Game logic stuff
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
@@ -370,6 +374,14 @@ export default function Game({ isOfflineMode, offlineGameType }) {
     }
     setDifficultySelected(false);
   }, [isOfflineMode, offlineGameType]);
+
+  useEffect(() => {
+    if (gameInitialized) {
+      setGameActive(true);
+    } else {
+      setGameActive(false);
+    }
+  }, [gameInitialized, setGameActive]);
 
   useEffect(() => {
     if (offlineGameType === "bot" && botDifficulty) {

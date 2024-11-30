@@ -738,10 +738,7 @@ export default function Game({ isOfflineMode, offlineGameType }) {
           )}
           {gameId && (
             <div className="online-match-stats">
-              <p>
-                Playing against: {opponent?.username || "Unknown Player"}
-                (Debug - opponent object: {JSON.stringify(opponent)})
-              </p>
+              <p>Playing against: {opponent?.username || "Unknown Player"}</p>
               <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
               <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
             </div>

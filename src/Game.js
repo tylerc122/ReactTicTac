@@ -399,12 +399,6 @@ export default function Game({
   }, [gameInitialized, gameEnded]);
 
   useEffect(() => {
-    console.log("Game ID:", gameId);
-    console.log("Opponent:", opponent);
-    console.log("Player Symbol:", playerSymbol);
-  }, [gameId, opponent, playerSymbol]);
-
-  useEffect(() => {
     const isBotMode = isOfflineMode && offlineGameType === "bot";
     const isBotMove = isBotMode && isBotTurn;
 
@@ -754,9 +748,8 @@ export default function Game({
               <button onClick={handleCancelMatch}>Cancel</button>
             </>
           )}
-          {(gameId || opponent) && (
+          {gameId && (
             <div className="online-match-stats">
-              <p>Game ID: {gameId}</p>
               <p>Playing against: {opponent?.username || "Unknown Player"}</p>
               <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
               <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>

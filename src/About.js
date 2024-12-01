@@ -234,7 +234,7 @@ function About() {
                   <List>
                     <ListItem>• React.js</ListItem>
                     <ListItem>• Material-UI</ListItem>
-                    <ListItem>• Socket.IO client</ListItem>
+                    <ListItem>• JWT</ListItem>
                   </List>
                 </Paper>
                 <Paper
@@ -249,10 +249,10 @@ function About() {
                     Backend
                   </Typography>
                   <List>
-                    <ListItem>• Node.js w/ Express</ListItem>
+                    <ListItem>• Node.js</ListItem>
+                    <ListItem>• Express.js </ListItem>
                     <ListItem>• MongoDB</ListItem>
                     <ListItem>• Socket.IO</ListItem>
-                    <ListItem>• JWT Authentication</ListItem>
                     <ListItem>• Nginx</ListItem>
                     <ListItem>• PM2</ListItem>
                   </List>

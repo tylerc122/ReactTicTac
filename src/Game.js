@@ -399,6 +399,12 @@ export default function Game({
   }, [gameInitialized, gameEnded]);
 
   useEffect(() => {
+    console.log("Game ID:", gameId);
+    console.log("Opponent:", opponent);
+    console.log("Player Symbol:", playerSymbol);
+  }, [gameId, opponent, playerSymbol]);
+
+  useEffect(() => {
     const isBotMode = isOfflineMode && offlineGameType === "bot";
     const isBotMove = isBotMode && isBotTurn;
 
@@ -737,54 +743,24 @@ export default function Game({
   return (
     <div className="game-container">
       {isOnlineMode ? (
-        <GameContainer>
-          {" "}
-          {/* Add a container wrapper */}
-          <div className="scoreboard" style={{ marginBottom: "20px" }}></div>
+        <>
+          <div className="scoreboard"></div>
           {!gameId && !isWaiting && (
-            <Button
-              variant="contained"
-              onClick={handleFindMatch}
-              sx={{ marginBottom: "20px" }}
-            >
-              Find Online Match
-            </Button>
+            <button onClick={handleFindMatch}>Find Online Match</button>
           )}
           {isWaiting && (
-            <Box sx={{ marginBottom: "20px" }}>
-              <Typography variant="h6">Waiting for an opponent...</Typography>
-              <Button
-                variant="contained"
-                onClick={handleCancelMatch}
-                sx={{ marginTop: "10px" }}
-              >
-                Cancel
-              </Button>
-            </Box>
+            <>
+              <p>Waiting for an opponent...</p>
+              <button onClick={handleCancelMatch}>Cancel</button>
+            </>
           )}
-          {gameId && (
-            <Box
-              className="online-match-stats"
-              sx={{
-                padding: "15px",
-                marginBottom: "20px",
-                backgroundColor: "background.paper",
-                borderRadius: "8px",
-                boxShadow: 1,
-                position: "relative",
-                zIndex: 1,
-              }}
-            >
-              <Typography>
-                Playing against: {opponent?.username || "Unknown Player"}
-              </Typography>
-              <Typography>
-                You are: {playerSymbol || "Waiting for symbol..."}
-              </Typography>
-              <Typography>
-                {isMyTurn ? "Your turn" : "Opponent's turn"}
-              </Typography>
-            </Box>
+          {(gameId || opponent) && (
+            <div className="online-match-stats">
+              <p>Game ID: {gameId}</p>
+              <p>Playing against: {opponent?.username || "Unknown Player"}</p>
+              <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
+              <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
+            </div>
           )}
           <div className="game">
             <div className="game-board">
@@ -808,7 +784,7 @@ export default function Game({
               />
             </div>
           </div>
-        </GameContainer>
+        </>
       ) : (
         <>
           {isOfflineMode && offlineGameType === "bot" && !difficultySelected ? (

@@ -303,7 +303,10 @@ export default function Game({
       // we then update variables accordingly.
       socket.on("matchFound", ({ gameId, opponent, start, symbol }) => {
         setGameId(gameId);
-        setOpponent(opponent); // This now recieves {id, username}
+        setOpponent({
+          id: opponent.id,
+          username: opponent.username,
+        });
         setIsWaiting(false);
         setPlayerSymbol(symbol);
         setIsMyTurn(start);
@@ -312,7 +315,7 @@ export default function Game({
         setCurrentMove(0);
         setXIsNext(true);
         setCurrentSquares(Array(9).fill(null));
-        setOpponentStats(opponentStats);
+        setOpponentStats(opponent.stats); // Set the opponent stats from the server data
         console.log("Opponent state after setting:", opponent);
         console.log(
           `Match found. You are ${symbol}. ${
@@ -775,10 +778,47 @@ export default function Game({
           )}
           {gameId && (
             <div className="online-match-stats">
-              <p>Playing against: {opponent?.username || "Unknown Player"}</p>
-              <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
-              <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
-              <OpponentStats stats={opponentStats?.stats} />
+              <Typography variant="h6" gutterBottom>
+                Match Information
+              </Typography>
+              <Typography>
+                Playing against: {opponent?.username || "Unknown Player"}
+              </Typography>
+              <Typography>
+                You are: {playerSymbol || "Waiting for symbol..."}
+              </Typography>
+              <Typography>
+                {isMyTurn ? "Your turn" : "Opponent's turn"}
+              </Typography>
+              {opponentStats && (
+                <div className="opponent-stats">
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Opponent Stats
+                  </Typography>
+                  <div className="stats-container">
+                    <Typography>Wins: {opponentStats.wins}</Typography>
+                    <Typography>Losses: {opponentStats.losses}</Typography>
+                    <Typography>Draws: {opponentStats.draws}</Typography>
+                    <Typography>
+                      Total Games:{" "}
+                      {opponentStats.wins +
+                        opponentStats.losses +
+                        opponentStats.draws}
+                    </Typography>
+                    <Typography>
+                      Win Rate:{" "}
+                      {(
+                        (opponentStats.wins /
+                          (opponentStats.wins +
+                            opponentStats.losses +
+                            opponentStats.draws)) *
+                        100
+                      ).toFixed(2)}
+                      %
+                    </Typography>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div className="game">

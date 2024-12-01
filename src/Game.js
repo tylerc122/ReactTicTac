@@ -41,6 +41,29 @@ const ModeButton = styled(Button)(({ theme }) => ({
   padding: theme.spacing(1, 3),
 }));
 
+const OpponentStats = ({ stats }) => {
+  if (!stats) return null;
+
+  const totalGames = stats.wins + stats.losses + stats.draws;
+  const winPercentage =
+    totalGames > 0 ? ((stats.wins / totalGames) * 100).toFixed(2) : 0;
+
+  return (
+    <div className="opponent-stats">
+      <Typography variant="h6" gutterBottom>
+        Opponent Stats
+      </Typography>
+      <div className="stats-container">
+        <Typography>Wins: {stats.wins}</Typography>
+        <Typography>Losses: {stats.losses}</Typography>
+        <Typography>Draws: {stats.draws}</Typography>
+        <Typography>Total Games: {totalGames}</Typography>
+        <Typography>Win Rate: {winPercentage}%</Typography>
+      </div>
+    </div>
+  );
+};
+
 const CoinFlipOverlay = styled("div")(({ theme }) => ({
   position: "fixed",
   top: 0,
@@ -267,6 +290,7 @@ export default function Game({
   const [showCoinFlip, setShowCoinFlip] = useState(false);
   const [shouldCoinFlip, setShouldCoinFlip] = useState(false);
   const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+  const [opponentStats, setOpponentStats] = useState(null);
 
   // Hook that handles when an online match found
   useEffect(() => {
@@ -288,6 +312,7 @@ export default function Game({
         setCurrentMove(0);
         setXIsNext(true);
         setCurrentSquares(Array(9).fill(null));
+        setOpponentStats(opponentStats);
         console.log("Opponent state after setting:", opponent);
         console.log(
           `Match found. You are ${symbol}. ${
@@ -753,6 +778,7 @@ export default function Game({
               <p>Playing against: {opponent?.username || "Unknown Player"}</p>
               <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
               <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
+              <OpponentStats stats={opponentStats?.stats} />
             </div>
           )}
           <div className="game">

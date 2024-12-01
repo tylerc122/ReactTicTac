@@ -40,7 +40,11 @@ function Navbar({ isGameActive }) {
             About
           </Button>
           {user && (
-            <Button color="inherit" onClick={logout}>
+            <Button
+              color="inherit"
+              onClick={logout}
+              sx={{ fontSize: 17, fontWeight: 550 }}
+            >
               Logout
             </Button>
           )}

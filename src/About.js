@@ -69,20 +69,34 @@ function About() {
             borderRadius: "16px",
           }}
         >
-          <motion.div variants={itemVariants}>
+          <motion.div
+            variants={itemVariants}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
             <Typography
               variant="h2"
               gutterBottom
               sx={{
                 fontWeight: "bold",
-                background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+                background: "linear-gradient(90deg, #2196F3, #21CBF3, #6EC6FF)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
+                animation: "blue-gradient-shift 4s infinite linear",
+                textShadow: "0px 4px 8px rgba(33, 150, 243, 0.6)",
+                "@keyframes blue-gradient-shift": {
+                  "0%": { backgroundPosition: "0% 50%" },
+                  "50%": { backgroundPosition: "100% 50%" },
+                  "100%": { backgroundPosition: "0% 50%" },
+                },
+                textAlign: "center",
               }}
             >
               TicTacTyler
             </Typography>
           </motion.div>
+
           {/* Features Section */}
           <motion.div variants={itemVariants}>
             <Box sx={{ my: 6 }}>
@@ -95,7 +109,7 @@ function About() {
                     "Online multiplayer with real-time gameplay",
                     "Four AI difficulty levels: Easy, Medium, Hard, and Impossible (PLEASE LET ME KNOW IF YOU BEAT THE IMPOSSIBLE BOT)",
                     "Local multiplayer for face-to-face games",
-                    "Player statistics tracking (WIP, currently when you win you get a loss and vice versa sorry)",
+                    "Player statistics tracking",
                     "Secure account system",
                   ].map((feature, index) => (
                     <motion.div
@@ -130,7 +144,7 @@ function About() {
                     src="/tyler-photo.jpg"
                     alt="Tyler Collo"
                     style={{
-                      width: "1500px",
+                      width: "2100px",
                       height: "430px",
                       borderRadius: "50%",
                       objectFit: "cover",
@@ -146,10 +160,12 @@ function About() {
                     >
                       Hello! My name is Tyler and I'm currently a student
                       studying computer science at George Washington University.
-                      If you'd like to learn more about me or my other projects,
-                      feel free to check out my personal website. My GitHub and
-                      LinkedIn profiles are also linked below if you'd like to
-                      get in touch!
+                      TicTacTyler was my first full-stack project (and my first
+                      personal project in general) that I followed through to
+                      completion. If you'd like to learn more about me or my
+                      other projects, feel free to check out my personal website
+                      (that doesn't exist yet). My GitHub and LinkedIn profiles
+                      are also linked below if you wanna get in touch!
                     </Typography>
                     <Button
                       variant="contained"

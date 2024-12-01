@@ -737,23 +737,54 @@ export default function Game({
   return (
     <div className="game-container">
       {isOnlineMode ? (
-        <>
-          <div className="scoreboard"></div>
+        <GameContainer>
+          {" "}
+          {/* Add a container wrapper */}
+          <div className="scoreboard" style={{ marginBottom: "20px" }}></div>
           {!gameId && !isWaiting && (
-            <button onClick={handleFindMatch}>Find Online Match</button>
+            <Button
+              variant="contained"
+              onClick={handleFindMatch}
+              sx={{ marginBottom: "20px" }}
+            >
+              Find Online Match
+            </Button>
           )}
           {isWaiting && (
-            <>
-              <p>Waiting for an opponent...</p>
-              <button onClick={handleCancelMatch}>Cancel</button>
-            </>
+            <Box sx={{ marginBottom: "20px" }}>
+              <Typography variant="h6">Waiting for an opponent...</Typography>
+              <Button
+                variant="contained"
+                onClick={handleCancelMatch}
+                sx={{ marginTop: "10px" }}
+              >
+                Cancel
+              </Button>
+            </Box>
           )}
           {gameId && (
-            <div className="online-match-stats">
-              <p>Playing against: {opponent?.username || "Unknown Player"}</p>
-              <p>You are: {playerSymbol || "Waiting for symbol..."}</p>
-              <p>{isMyTurn ? "Your turn" : "Opponent's turn"}</p>
-            </div>
+            <Box
+              className="online-match-stats"
+              sx={{
+                padding: "15px",
+                marginBottom: "20px",
+                backgroundColor: "background.paper",
+                borderRadius: "8px",
+                boxShadow: 1,
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              <Typography>
+                Playing against: {opponent?.username || "Unknown Player"}
+              </Typography>
+              <Typography>
+                You are: {playerSymbol || "Waiting for symbol..."}
+              </Typography>
+              <Typography>
+                {isMyTurn ? "Your turn" : "Opponent's turn"}
+              </Typography>
+            </Box>
           )}
           <div className="game">
             <div className="game-board">
@@ -777,7 +808,7 @@ export default function Game({
               />
             </div>
           </div>
-        </>
+        </GameContainer>
       ) : (
         <>
           {isOfflineMode && offlineGameType === "bot" && !difficultySelected ? (

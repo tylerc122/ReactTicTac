@@ -163,9 +163,9 @@ function About() {
                       TicTacTyler was my first full-stack project (and my first
                       personal project in general) that I followed through to
                       completion. If you'd like to learn more about me or my
-                      other projects, feel free to check out my personal website
-                      (that doesn't exist yet). My GitHub and LinkedIn profiles
-                      are also linked below if you wanna get in touch!
+                      other projects, feel free to check out my personal
+                      website. My GitHub and LinkedIn profiles are also linked
+                      below if you wanna get in touch!
                     </Typography>
                     <Button
                       variant="contained"

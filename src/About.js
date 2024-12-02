@@ -144,8 +144,8 @@ function About() {
                     src="/tyler-photo.jpg"
                     alt="Tyler Collo"
                     style={{
-                      width: "2100px",
-                      height: "430px",
+                      width: "400px",
+                      height: "390px",
                       borderRadius: "50%",
                       objectFit: "cover",
                       border: "4px solid #2196F3",
@@ -158,14 +158,14 @@ function About() {
                       paragraph
                       sx={{ fontFamily: "sans" }}
                     >
-                      Hello! My name is Tyler and I'm currently a student
-                      studying computer science at George Washington University.
-                      TicTacTyler was my first full-stack project (and my first
-                      personal project in general) that I followed through to
-                      completion. If you'd like to learn more about me or my
-                      other projects, feel free to check out my personal
-                      website. My GitHub and LinkedIn profiles are also linked
-                      below if you wanna get in touch!
+                      Hello! My name is Tyler (the one in the middle) and I'm
+                      currently a student studying computer science at George
+                      Washington University. TicTacTyler was my first full-stack
+                      project (and my first personal project in general) that I
+                      followed through to completion. If you'd like to learn
+                      more about me or my other projects, feel free to check out
+                      my personal website. My GitHub and LinkedIn profiles are
+                      also linked below if you wanna get in touch!
                     </Typography>
                     <Button
                       variant="contained"
